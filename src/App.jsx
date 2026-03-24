@@ -233,7 +233,7 @@ function HomePage({t,lang,mounted}){
   </div>);}
 
 /* -- CINEMA DATA (from vkino.com.ua, updated 23.03.2026) -- */
-var MOVIES=[
+var MOVIES_FALLBACK=[
 {title:"Коли ти розлучишся?",url:"https://vkino.com.ua/ua/show/11157-koli-ti-rozluchishsya/kyiv",en:"When Will You Divorce?",genre:"Комедія",age:"16+",duration:"90 хв",desc:"Весілля мрії обертається хаосом після зникнення нареченого. Романтична комедія-пригода.",descEn:"A dream wedding turns to chaos when the groom vanishes. A romantic comedy adventure.",poster:"https://images.unsplash.com/photo-1529636798458-92182e662485?w=200&h=290&fit=crop",cinemas:[
 {name:"Multiplex Lavina",times:["15:00","17:00","19:00","21:00"]},{name:"Multiplex Retroville",times:["15:00","17:00","19:00"]},{name:"Multiplex Prospekt",times:["15:00","17:00","19:00"]},{name:"Оскар Gulliver",times:["16:00","18:10","20:20"]},{name:"Оскар Smart Plaza",times:["15:30","17:40"]},{name:"Neostar ТРЦ Квадрат",times:["15:00","17:10","19:20"]},{name:"Boomer",times:["15:00","17:00","19:00"]},{name:"Ліра",times:["16:30","18:40"]},{name:"Магнат",times:["17:00","19:10"]},{name:"Лейпціг",times:["15:50","18:00","20:10"]},{name:"ім. Шевченка",times:["16:00","18:10"]}]},
 {title:"Стрибунці",url:"https://vkino.com.ua/ua/show/11155-stribuntsi-hoppers/kyiv",en:"Hoppers",genre:"Анімація",age:"0+",duration:"1 год 45 хв",desc:"Юна Мейбл переносить свідомість у робота-бобра, щоб врятувати природу. Pixar.",descEn:"Young Mabel transfers her mind into a robotic beaver to save wildlife. A Pixar adventure.",poster:"https://images.unsplash.com/photo-1535016120720-40c646be5580?w=200&h=290&fit=crop",cinemas:[
@@ -259,98 +259,39 @@ var MOVIES=[
 ];
 
 function CinemaContent({t,lang}){
-  var ex=useState(null),expanded=ex[0],setExpanded=ex[1];
-  var movies=MOVIES;
-
-  function renderMovie(m,i){
-    var isE=expanded===i;
-    var cl=m.cinemas||[];
-    var vis=isE?cl:cl.slice(0,3);
-    var more=cl.length>3;
-    var title=lang==="en"&&m.en?m.en:m.title;
-    var desc=lang==="en"&&m.descEn?m.descEn:m.desc;
-    return (
-      <div key={i} style={{background:"rgba(247,183,49,0.04)",border:"1px solid rgba(247,183,49,0.1)",borderRadius:18,marginBottom:14,overflow:"hidden"}}>
-        <div style={{display:"flex",gap:14,padding:"14px"}}>
-          <img src={m.poster} alt="" style={{width:80,height:115,objectFit:"cover",borderRadius:10,flexShrink:0}}/>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-              {m.age && <span style={{background:"rgba(255,255,255,0.1)",borderRadius:4,padding:"1px 7px",fontSize:10,fontWeight:700,color:"#8b86a3"}}>{m.age}</span>}
-              <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:15,fontWeight:700,color:"#fff",margin:0,lineHeight:1.3}}>{title}</h3>
-            </div>
-            <div style={{fontSize:11,color:"#8b86a3",marginTop:3}}>{[m.genre,m.duration].filter(Boolean).join(" / ")}</div>
-            {desc && <div style={{fontSize:11,color:"#6b6782",marginTop:5,lineHeight:1.4}}>{desc}</div>}
-          </div>
-        </div>
-        <div style={{padding:"0 14px 14px"}}>
-          {vis.map(function(cin,j){
-            return (
-              <div key={j} style={{marginBottom:8,paddingTop:j>0?8:0,borderTop:j>0?"1px solid rgba(255,255,255,0.04)":"none"}}>
-                <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4}}>
-                  <span style={{fontSize:10}}>📍</span>
-                  <span style={{fontSize:12,fontWeight:600,color:"#c4c0d8"}}>{cin.name}</span>
-                  {j===0 && i===0 && <span style={{fontSize:9,color:"#6b6782",marginLeft:4}}>{lang==="en"?"tap time to buy":"натисніть час для купівлі"}</span>}
-                </div>
-                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                  {cin.times.map(function(st,k){
-                    var fmt=cin.formats&&cin.formats[k];
-                    return (
-                      <a key={k} href={m.url||"https://vkino.com.ua/ua/afisha/kyiv"} target="_blank" rel="noopener noreferrer" style={{background:"rgba(247,183,49,0.12)",border:"1px solid rgba(247,183,49,0.2)",borderRadius:6,padding:"4px 10px",fontSize:11,fontWeight:600,color:"#f7b731",textDecoration:"none",cursor:"pointer",transition:"all 0.15s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(247,183,49,0.3)"}} onMouseLeave={function(e){e.currentTarget.style.background="rgba(247,183,49,0.12)"}}>
-                        {st}{fmt ? <span style={{fontSize:9,color:"#ff9f43",marginLeft:3}}>{fmt}</span> : null}
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-          {more && <button onClick={function(){setExpanded(isE?null:i)}} style={{background:"rgba(247,183,49,0.08)",border:"1px solid rgba(247,183,49,0.15)",borderRadius:10,padding:"8px",color:"#f7b731",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%"}}>
-            {isE ? (lang==="en"?"Show less":"Згорнути") : (lang==="en"?"+ "+(cl.length-3)+" more cinemas":"Ще "+(cl.length-3)+" кінотеатрів")}
-          </button>}
-
-        </div>
-      </div>
-    );
-  }
-
-  var tix=[
-    {n:"vkino.com.ua",u:"https://vkino.com.ua/ua/afisha/kyiv",d:lang==="en"?"All cinemas - buy tickets":"Усі кінотеатри - купити квитки",c:"#f7b731"},
-    {n:"Planeta Kino",u:"https://planetakino.ua/",d:"IMAX, 4DX, RE\'LUX",c:"#e84393"},
-    {n:"Multiplex",u:"https://multiplex.ua/",d:lang==="en"?"7 locations":"7 локацій",c:"#a259ff"},
-    {n:"Oscar",u:"https://oskar.kyiv.ua/",d:"Gulliver, Smart Plaza",c:"#4fc3f7"},
-    {n:"Zhovten",u:"https://zhovten-kino.kyiv.ua/",d:lang==="en"?"Art-house":"Арт-хаус",c:"#3ecf8e"}
-  ];
-
-  return (
-    <div>
-      <p style={{fontSize:10,color:"#4d4a60",margin:"0 0 12px"}}>{lang==="en"?"Showtimes from vkino.com.ua - updated daily":"Сеанси з vkino.com.ua - оновлюються щоденно"}</p>
-      <div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:16,scrollbarWidth:"none"}}>
-        {(function(){var d=[];for(var i=0;i<5;i++){var dt=new Date();dt.setDate(dt.getDate()+i);var lbl=i===0?(lang==="en"?"Today":"Сьогодні"):i===1?(lang==="en"?"Tomorrow":"Завтра"):dt.toLocaleDateString(lang==="en"?"en-US":"uk-UA",{weekday:"short",day:"numeric",month:"short"});d.push(lbl);}return d})().map(function(lbl,i){
-          return (<a key={i} href={i>0?"https://vkino.com.ua/ua/afisha/kyiv":undefined} target={i>0?"_blank":undefined} rel="noopener noreferrer" style={{background:i===0?"rgba(247,183,49,0.2)":"rgba(255,255,255,0.05)",border:i===0?"1px solid rgba(247,183,49,0.4)":"1px solid rgba(255,255,255,0.07)",borderRadius:20,padding:"7px 16px",color:i===0?"#f7b731":"#8b86a3",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap",textDecoration:"none"}}>{lbl}</a>);
-        })}
-      </div>
-      <div style={{marginBottom:16}}>
-        {movies.map(renderMovie)}
-      </div>
-      <div style={{marginBottom:28}}>
-        <h3 style={{fontFamily:"'Outfit',sans-serif",fontSize:14,fontWeight:700,color:"#dddaf0",marginBottom:10}}>{lang==="en"?"Buy Tickets":"Купити квитки"}</h3>
-        {tix.map(function(tk){
-          return (
-            <a key={tk.n} href={tk.u} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:10,background:tk.c+"08",border:"1px solid "+tk.c+"22",borderRadius:12,padding:"10px 12px",textDecoration:"none",marginBottom:6}}>
-              <span style={{fontSize:16}}>🎬</span>
-              <div style={{flex:1}}>
-                <div style={{fontSize:12,fontWeight:700,color:"#fff"}}>{tk.n}</div>
-                <div style={{fontSize:10,color:"#8b86a3"}}>{tk.d}</div>
-              </div>
-              <span style={{background:tk.c,borderRadius:6,padding:"4px 10px",fontSize:10,fontWeight:700,color:tk.c==="#f7b731"?"#000":"#fff"}}>{lang==="en"?"Tickets":"Квитки"} &rarr;</span>
-            </a>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
+var ex=useState(null),expanded=ex[0],setExpanded=ex[1];
+var ld=useState(true),loading=ld[0],setLoading=ld[1];
+var md=useState(null),liveMovies=md[0],setLiveMovies=md[1];
+var er=useState(null),error=er[0],setError=er[1];
+useEffect(function(){
+setLoading(true);
+fetch("/api/cinema")
+.then(function(r){return r.json()})
+.then(function(data){
+if(data.ok && data.movies && data.movies.length>0){ setLiveMovies(data.movies); }
+setLoading(false);
+})
+.catch(function(){setLoading(false);setError(true);});
+},[]);
+var movies=liveMovies||MOVIES_FALLBACK;
+return React.createElement("div",{style:{padding:"18px 0"}},
+React.createElement("p",{style:{color:"#b0b0b0",fontSize:13,marginBottom:18,textAlign:"center"}},
+loading?("\u23F3 "+(lang==="en"?"Loading live showtimes...":"\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u0430\u043A\u0442\u0443\u0430\u043B\u044C\u043D\u0438\u0445 \u0441\u0435\u0430\u043D\u0441\u0456\u0432...")):(liveMovies?(lang==="en"?"Live showtimes from vkino.com.ua":"\u0421\u0435\u0430\u043D\u0441\u0438 \u0437 vkino.com.ua \u0432 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u0447\u0430\u0441\u0456"):(lang==="en"?"Showtimes from vkino.com.ua":"\u0421\u0435\u0430\u043D\u0441\u0438 \u0437 vkino.com.ua"))),
+movies.map(function(mv,i){return React.createElement("div",{key:i,style:{marginBottom:14,background:"#23243a",borderRadius:14,overflow:"hidden",cursor:"pointer"},onClick:function(){setExpanded(expanded===i?null:i)}},
+React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14,padding:12}},
+React.createElement("img",{src:mv.poster,alt:mv.title,style:{width:54,height:78,objectFit:"cover",borderRadius:8,background:"#1a1a2e"},onError:function(e){e.target.style.display="none"}}),
+React.createElement("div",{style:{flex:1}},
+React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#fff"}},mv.title),
+mv.genre?React.createElement("div",{style:{fontSize:12,color:"#b0b0b0",marginTop:2}},mv.genre+(mv.duration?" \u00B7 "+mv.duration:"")+(mv.age?" \u00B7 "+mv.age:"")):"",
+React.createElement("div",{style:{fontSize:12,color:"#ffd700",marginTop:4}},mv.cinemas?mv.cinemas.length+(lang==="en"?" cinemas":" \u043A\u0456\u043D\u043E\u0442\u0435\u0430\u0442\u0440\u0456\u0432"):"")),
+React.createElement("span",{style:{color:"#ffd700",fontSize:18}},expanded===i?"\u25B2":"\u25BC")),
+expanded===i?React.createElement("div",{style:{padding:"0 14px 14px",borderTop:"1px solid #333"}},
+mv.cinemas&&mv.cinemas.map(function(cin,j){return React.createElement("div",{key:j,style:{marginTop:10}},
+React.createElement("div",{style:{fontWeight:600,fontSize:13,color:"#e0e0e0",marginBottom:4}},cin.name),
+React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+cin.times&&cin.times.map(function(time,k){return React.createElement("span",{key:k,style:{background:"#ffd700",color:"#000",padding:"3px 10px",borderRadius:8,fontSize:12,fontWeight:600}},time)})))}),
+mv.desc?React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:8,lineHeight:1.4}},mv.desc):"",
+React.createElement("a",{href:mv.url,target:"_blank",rel:"noopener noreferrer",style:{display:"inline-block",marginTop:8,fontSize:12,color:"#ffd700",textDecoration:"underline"}},lang==="en"?"Buy tickets on vkino.com.ua":"\u041A\u0432\u0438\u0442\u043A\u0438 \u043D\u0430 vkino.com.ua")):null)}));}
 function CinemaPage({t,lang}){
   return (
     <div style={{padding:"0 20px"}}>
