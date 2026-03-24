@@ -265,33 +265,35 @@ var md=useState(null),liveMovies=md[0],setLiveMovies=md[1];
 var er=useState(null),error=er[0],setError=er[1];
 useEffect(function(){
 setLoading(true);
-fetch("/api/cinema")
-.then(function(r){return r.json()})
-.then(function(data){
-if(data.ok && data.movies && data.movies.length>0){ setLiveMovies(data.movies); }
+fetch("/api/cinema").then(function(r){return r.json()}).then(function(data){
+if(data.ok&&data.movies&&data.movies.length>0){setLiveMovies(data.movies);}
 setLoading(false);
-})
-.catch(function(){setLoading(false);setError(true);});
+}).catch(function(){setLoading(false);setError(true);});
 },[]);
 var movies=liveMovies||MOVIES_FALLBACK;
-return React.createElement("div",{style:{padding:"18px 0"}},
-React.createElement("p",{style:{color:"#b0b0b0",fontSize:13,marginBottom:18,textAlign:"center"}},
-loading?("\u23F3 "+(lang==="en"?"Loading live showtimes...":"\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u0430\u043A\u0442\u0443\u0430\u043B\u044C\u043D\u0438\u0445 \u0441\u0435\u0430\u043D\u0441\u0456\u0432...")):(liveMovies?(lang==="en"?"Live showtimes from vkino.com.ua":"\u0421\u0435\u0430\u043D\u0441\u0438 \u0437 vkino.com.ua \u0432 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C\u0443 \u0447\u0430\u0441\u0456"):(lang==="en"?"Showtimes from vkino.com.ua":"\u0421\u0435\u0430\u043D\u0441\u0438 \u0437 vkino.com.ua"))),
-movies.map(function(mv,i){return React.createElement("div",{key:i,style:{marginBottom:14,background:"#23243a",borderRadius:14,overflow:"hidden",cursor:"pointer"},onClick:function(){setExpanded(expanded===i?null:i)}},
-React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14,padding:12}},
-React.createElement("img",{src:mv.poster,alt:mv.title,style:{width:54,height:78,objectFit:"cover",borderRadius:8,background:"#1a1a2e"},onError:function(e){e.target.style.display="none"}}),
-React.createElement("div",{style:{flex:1}},
-React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"#fff"}},mv.title),
-mv.genre?React.createElement("div",{style:{fontSize:12,color:"#b0b0b0",marginTop:2}},mv.genre+(mv.duration?" \u00B7 "+mv.duration:"")+(mv.age?" \u00B7 "+mv.age:"")):"",
-React.createElement("div",{style:{fontSize:12,color:"#ffd700",marginTop:4}},mv.cinemas?mv.cinemas.length+(lang==="en"?" cinemas":" \u043A\u0456\u043D\u043E\u0442\u0435\u0430\u0442\u0440\u0456\u0432"):"")),
-React.createElement("span",{style:{color:"#ffd700",fontSize:18}},expanded===i?"\u25B2":"\u25BC")),
-expanded===i?React.createElement("div",{style:{padding:"0 14px 14px",borderTop:"1px solid #333"}},
-mv.cinemas&&mv.cinemas.map(function(cin,j){return React.createElement("div",{key:j,style:{marginTop:10}},
-React.createElement("div",{style:{fontWeight:600,fontSize:13,color:"#e0e0e0",marginBottom:4}},cin.name),
-React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
-cin.times&&cin.times.map(function(time,k){return React.createElement("span",{key:k,style:{background:"#ffd700",color:"#000",padding:"3px 10px",borderRadius:8,fontSize:12,fontWeight:600}},time)})))}),
-mv.desc?React.createElement("p",{style:{fontSize:12,color:"#999",marginTop:8,lineHeight:1.4}},mv.desc):"",
-React.createElement("a",{href:mv.url,target:"_blank",rel:"noopener noreferrer",style:{display:"inline-block",marginTop:8,fontSize:12,color:"#ffd700",textDecoration:"underline"}},lang==="en"?"Buy tickets on vkino.com.ua":"\u041A\u0432\u0438\u0442\u043A\u0438 \u043D\u0430 vkino.com.ua")):null)}));}
+return(<div style={{padding:"18px 0"}}>
+<p style={{color:"#b0b0b0",fontSize:13,marginBottom:18,textAlign:"center"}}>{loading?("⏳ "+(lang==="en"?"Loading live showtimes...":"Завантаження актуальних сеансів...")):(liveMovies?(lang==="en"?"Live showtimes from vkino.com.ua":"Сеанси з vkino.com.ua в реальному часі"):(lang==="en"?"Showtimes from vkino.com.ua":"Сеанси з vkino.com.ua"))}</p>
+{movies.map(function(mv,i){return(<div key={i} style={{marginBottom:14,background:"#23243a",borderRadius:14,overflow:"hidden",cursor:"pointer"}} onClick={function(){setExpanded(expanded===i?null:i)}}>
+<div style={{display:"flex",alignItems:"center",gap:14,padding:12}}>
+<img src={mv.poster} alt={mv.title} style={{width:54,height:78,objectFit:"cover",borderRadius:8,background:"#1a1a2e"}} onError={function(e){e.target.style.display="none"}}/>
+<div style={{flex:1}}>
+<div style={{fontWeight:700,fontSize:15,color:"#fff"}}>{mv.title}</div>
+{mv.genre?<div style={{fontSize:12,color:"#b0b0b0",marginTop:2}}>{mv.genre+(mv.duration?" · "+mv.duration:"")+(mv.age?" · "+mv.age:"")}</div>:""}
+<div style={{fontSize:12,color:"#ffd700",marginTop:4}}>{mv.cinemas?mv.cinemas.length+(lang==="en"?" cinemas":" кінотеатрів"):""}</div>
+</div>
+<span style={{color:"#ffd700",fontSize:18}}>{expanded===i?"▲":"▼"}</span>
+</div>
+{expanded===i?<div style={{padding:"0 14px 14px",borderTop:"1px solid #333"}}>
+{mv.cinemas&&mv.cinemas.map(function(cin,j){return(<div key={j} style={{marginTop:10}}>
+<div style={{fontWeight:600,fontSize:13,color:"#e0e0e0",marginBottom:4}}>{cin.name}</div>
+<div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+{cin.times&&cin.times.map(function(time,k){return(<span key={k} style={{background:"#ffd700",color:"#000",padding:"3px 10px",borderRadius:8,fontSize:12,fontWeight:600}}>{time}</span>)})}
+</div></div>)})}
+{mv.desc?<p style={{fontSize:12,color:"#999",marginTop:8,lineHeight:1.4}}>{mv.desc}</p>:""}
+<a href={mv.url} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",marginTop:8,fontSize:12,color:"#ffd700",textDecoration:"underline"}}>{lang==="en"?"Buy tickets on vkino.com.ua":"Квитки на vkino.com.ua"}</a>
+</div>:null}
+</div>)})}
+</div>);}
 function CinemaPage({t,lang}){
   return (
     <div style={{padding:"0 20px"}}>
