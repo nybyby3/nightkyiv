@@ -1,6 +1,8 @@
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
   res.setHeader('Access-Control-Allow-Origin', '*');
+  var debug = req.query.debug === '1';
+  var debugInfo = {};
   try {
     var hdrs = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -12,6 +14,10 @@ export default async function handler(req, res) {
     // Step 1: Fetch homepage to get movie list
     var homeResp = await fetch('https://multiplex.ua/', { headers: hdrs });
     var homeHtml = await homeResp.text();
+    debugInfo.homeStatus = homeResp.status;
+    debugInfo.homeLen = homeHtml.length;
+    debugInfo.homeHas_mpp_title = homeHtml.indexOf('mpp_title') !== -1;
+    debugInfo.homeSample = homeHtml.substring(0, 500);
 
     // Extract movie IDs and titles
     var movieRe = /<a[^>]*class="mpp_title"[^>]*href="\/movie\/(\d+)"[^>]*>([\s\S]*?)<\/a>/g;
@@ -25,6 +31,24 @@ export default async function handler(req, res) {
         movies.push({ id: id, title: m[2].replace(/<[^>]*>/g, '').trim() });
       }
     }
+    debugInfo.moviesFound = movies.length;
+    debugInfo.movieIds = movies.map(function(mv) { return mv.id; });
+
+    if (movies.length === 0) {
+      // Try alternative extraction - look for any /movie/ links
+      var altRe = /href="\/movie\/(\d+)"/g;
+      var altIds = [];
+      var am;
+      while ((am = altRe.exec(homeHtml)) !== null) {
+        if (altIds.indexOf(am[1]) === -1) altIds.push(am[1]);
+      }
+      debugInfo.altMovieIds = altIds;
+
+      // Try to use alt IDs if main regex failed
+      if (altIds.length > 0) {
+        movies = altIds.slice(0, 15).map(function(aid) { return { id: aid, title: '' }; });
+      }
+    }
 
     // Step 2: Fetch movie detail pages in parallel (max 15)
     var toFetch = movies.slice(0, 15);
@@ -32,18 +56,27 @@ export default async function handler(req, res) {
       return fetch('https://multiplex.ua/movie/' + mv.id, { headers: hdrs })
         .then(function(r) { return r.text(); })
         .then(function(html) { return parseMovie(html, mv.id, mv.title); })
-        .catch(function() { return null; });
+        .catch(function(e) { return { error: e.message, id: mv.id }; });
     }));
 
-    var result = details.filter(function(d) { return d && d.cinemas && d.cinemas.length > 0; });
+    debugInfo.detailResults = details.map(function(d) {
+      if (!d) return 'null';
+      if (d.error) return d;
+      return { title: d.title, poster: d.poster ? 'yes' : 'no', cinemas: d.cinemas ? d.cinemas.length : 0 };
+    });
 
-    res.status(200).json({
+    var result = details.filter(function(d) { return d && !d.error && d.cinemas && d.cinemas.length > 0; });
+
+    var response = {
       ok: true,
       date: new Date().toISOString(),
       movies: result
-    });
+    };
+    if (debug) response.debug = debugInfo;
+
+    res.status(200).json(response);
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    res.status(500).json({ ok: false, error: e.message, stack: e.stack, debug: debugInfo });
   }
 }
 
@@ -61,7 +94,7 @@ function parseMovie(html, id, fallbackTitle) {
   var creds = credMatch ? credMatch[1] : '';
 
   // Genre
-  var genreMatch = creds.match(/ÐÐ°Ð½Ñ:[\s\S]*?(<a[\s\S]*?)<\/li>/);
+  var genreMatch = creds.match(/\u0416\u0430\u043d\u0440:[\s\S]*?(<a[\s\S]*?)<\/li>/);
   var genre = '';
   if (genreMatch) {
     var genreLinks = genreMatch[1].match(/<a[^>]*>([^<]+)<\/a>/g);
@@ -71,11 +104,11 @@ function parseMovie(html, id, fallbackTitle) {
   }
 
   // Duration
-  var durMatch = creds.match(/Ð¢ÑÐ¸Ð²Ð°Ð»ÑÑÑÑ:[\s\S]*?(\d+:\d+)/);
+  var durMatch = creds.match(/\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c:[\s\S]*?(\d+:\d+)/);
   var duration = durMatch ? durMatch[1] : '';
 
   // Age
-  var ageMatch = creds.match(/ÐÑÐºÐ¾Ð²Ñ Ð¾Ð±Ð¼ÐµÐ¶ÐµÐ½Ð½Ñ:[\s\S]*?(\d+\+)/);
+  var ageMatch = creds.match(/\u0412\u0456\u043a\u043e\u0432\u0456 \u043e\u0431\u043c\u0435\u0436\u0435\u043d\u043d\u044f:[\s\S]*?(\d+\+)/);
   var age = ageMatch ? ageMatch[1] : '';
 
   // Description
