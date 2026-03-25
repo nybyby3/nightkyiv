@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+  res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=1800');
   res.setHeader('Access-Control-Allow-Origin', '*');
   var debug = req.query.debug === '1';
   var debugInfo = {};
@@ -16,10 +16,8 @@ export default async function handler(req, res) {
     var homeHtml = await homeResp.text();
     debugInfo.homeStatus = homeResp.status;
     debugInfo.homeLen = homeHtml.length;
-    debugInfo.homeHas_mpp_title = homeHtml.indexOf('mpp_title') !== -1;
-    debugInfo.homeSample = homeHtml.substring(0, 500);
 
-    // Extract movie IDs and titles
+    // Extract movie IDs
     var movieRe = /<a[^>]*class="mpp_title"[^>]*href="\/movie\/(\d+)"[^>]*>([\s\S]*?)<\/a>/g;
     var movies = [];
     var seen = {};
@@ -32,19 +30,14 @@ export default async function handler(req, res) {
       }
     }
     debugInfo.moviesFound = movies.length;
-    debugInfo.movieIds = movies.map(function(mv) { return mv.id; });
 
     if (movies.length === 0) {
-      // Try alternative extraction - look for any /movie/ links
       var altRe = /href="\/movie\/(\d+)"/g;
       var altIds = [];
       var am;
       while ((am = altRe.exec(homeHtml)) !== null) {
         if (altIds.indexOf(am[1]) === -1) altIds.push(am[1]);
       }
-      debugInfo.altMovieIds = altIds;
-
-      // Try to use alt IDs if main regex failed
       if (altIds.length > 0) {
         movies = altIds.slice(0, 15).map(function(aid) { return { id: aid, title: '' }; });
       }
@@ -62,14 +55,28 @@ export default async function handler(req, res) {
     debugInfo.detailResults = details.map(function(d) {
       if (!d) return 'null';
       if (d.error) return d;
-      return { title: d.title, poster: d.poster ? 'yes' : 'no', cinemas: d.cinemas ? d.cinemas.length : 0 };
+      return { title: d.title, dates: d.schedule ? d.schedule.length : 0 };
     });
 
-    var result = details.filter(function(d) { return d && !d.error && d.cinemas && d.cinemas.length > 0; });
+    var result = details.filter(function(d) { return d && !d.error && d.schedule && d.schedule.length > 0; });
+
+    // Collect all unique dates across all movies
+    var allDates = [];
+    var seenDates = {};
+    result.forEach(function(mov) {
+      mov.schedule.forEach(function(day) {
+        if (!seenDates[day.date]) {
+          seenDates[day.date] = true;
+          allDates.push(day.date);
+        }
+      });
+    });
+    allDates.sort();
 
     var response = {
       ok: true,
       date: new Date().toISOString(),
+      dates: allDates,
       movies: result
     };
     if (debug) response.debug = debugInfo;
@@ -95,11 +102,11 @@ function parseMovie(html, id, fallbackTitle) {
   var titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
   var title = titleMatch ? decodeEntities(titleMatch[1].replace(/<[^>]*>/g, '').trim()) : fallbackTitle;
 
-  // Poster from <div class="poster_container"><img src="/images/...">
+  // Poster
   var posterMatch = html.match(/<div[^>]*class="poster_container"[^>]*>[\s\S]*?<img[^>]*src="(\/images\/[^"]+)"/);
   var poster = posterMatch ? 'https://multiplex.ua' + posterMatch[1] : '';
 
-  // Movie credentials list
+  // Movie credentials
   var credMatch = html.match(/<ul[^>]*class="movie_credentials"[^>]*>([\s\S]*?)<\/ul>/);
   var creds = credMatch ? credMatch[1] : '';
 
@@ -128,56 +135,76 @@ function parseMovie(html, id, fallbackTitle) {
   // URL
   var url = 'https://multiplex.ua/movie/' + id;
 
-  // Schedule - parse first as_schedule block (nearest date)
-  var cinemas = [];
-  var schedStart = html.indexOf('<div class="as_schedule"');
-  if (schedStart !== -1) {
-    var schedNext = html.indexOf('<div class="as_schedule"', schedStart + 10);
-    var sched = html.substring(schedStart, schedNext !== -1 ? schedNext : schedStart + 15000);
+  // Schedule - parse ALL as_schedule blocks (one per date)
+  var schedule = [];
 
-    // Find all cinema divs by indexOf
+  // Find all as_schedule blocks with data-selector (date)
+  var schedRe = /<div[^>]*class="as_schedule"[^>]*data-selector="(\d+)"[^>]*>([\s\S]*?)(?=<div[^>]*class="as_schedule"|<div[^>]*class="cinema_schedule_header|$)/g;
+  var schedMatch;
+
+  while ((schedMatch = schedRe.exec(html)) !== null) {
+    var rawDate = schedMatch[1]; // e.g. "31032026"
+    var schedBlock = schedMatch[2];
+
+    // Parse date: DDMMYYYY -> YYYY-MM-DD
+    var dd = rawDate.substring(0, 2);
+    var mm = rawDate.substring(2, 4);
+    var yyyy = rawDate.substring(4, 8);
+    var isoDate = yyyy + '-' + mm + '-' + dd;
+
+    // Find cinemas in this block
+    var cinemas = [];
     var cinemaPositions = [];
     var cIdx = 0;
     while (true) {
-      var cs = sched.indexOf('<div class="cinema">', cIdx);
+      var cs = schedBlock.indexOf('<div class="cinema">', cIdx);
       if (cs === -1) break;
       cinemaPositions.push(cs);
       cIdx = cs + 10;
     }
 
     for (var i = 0; i < cinemaPositions.length; i++) {
-      var cEnd = (i + 1 < cinemaPositions.length) ? cinemaPositions[i + 1] : sched.length;
-      var block = sched.substring(cinemaPositions[i], cEnd);
+      var cEnd = (i + 1 < cinemaPositions.length) ? cinemaPositions[i + 1] : schedBlock.length;
+      var block = schedBlock.substring(cinemaPositions[i], cEnd);
 
-      // Cinema name from <p class="heading..."><a>Name</a></p>
-      var nameMatch = block.match(/<p[^>]*class="heading[^"]*"[^>]*>([\s\S]*?)<\/p>/);
-      var cinemaName = nameMatch ? nameMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+      // Cinema name
+      var nameMatch = block.match(/<p[^>]*class="heading[^"]*"[^>]*>[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>/);
+      var cinemaName = nameMatch ? decodeEntities(nameMatch[1].replace(/<[^>]*>/g, '').trim()) : '';
 
       if (!cinemaName) continue;
       if (block.indexOf('\u041d\u0435\u043c\u0430\u0454 \u0441\u0435\u0430\u043d\u0441\u0456\u0432') !== -1) continue;
 
-      // Session times: <p class="time"><span>HH:MM</span></p>
-      var timeRe = /<p[^>]*class="time"[^>]*>[\s\S]*?(\d{1,2}:\d{2})[\s\S]*?<\/p>/g;
-      var times = [];
-      var tm;
-      while ((tm = timeRe.exec(block)) !== null) {
-        times.push(tm[1]);
+      // Sessions: each .ns div has data-id and time
+      var nsRe = /<div[^>]*class="ns\s*"[^>]*data-id="([^"]*)"[^>]*>[\s\S]*?<p[^>]*class="time"[^>]*>[\s\S]*?<span>(\d{1,2}:\d{2})<\/span>[\s\S]*?<\/p>(?:[\s\S]*?<p[^>]*class="tag"[^>]*>([\s\S]*?)<\/p>)?/g;
+      var sessions = [];
+      var nsMatch;
+      while ((nsMatch = nsRe.exec(block)) !== null) {
+        var sessionObj = { time: nsMatch[2] };
+        if (nsMatch[1]) sessionObj.sid = nsMatch[1];
+        var fmt = nsMatch[3] ? nsMatch[3].replace(/<[^>]*>/g, '').trim() : '';
+        if (fmt) sessionObj.fmt = fmt;
+        sessions.push(sessionObj);
       }
 
-      if (times.length > 0) {
-        cinemas.push({ name: cinemaName, times: times });
+      if (sessions.length > 0) {
+        cinemas.push({ name: cinemaName, sessions: sessions });
       }
+    }
+
+    if (cinemas.length > 0) {
+      schedule.push({ date: isoDate, cinemas: cinemas });
     }
   }
 
   return {
     title: title,
+    id: id,
     url: url,
     poster: poster,
     genre: genre,
     duration: duration,
     age: age,
     desc: desc.substring(0, 300),
-    cinemas: cinemas
+    schedule: schedule
   };
 }
