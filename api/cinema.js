@@ -139,7 +139,7 @@ function parseMovie(html, id, fallbackTitle) {
   var schedule = [];
 
   // Find all as_schedule blocks with data-selector (date)
-  var schedRe = /<div[^>]*class="as_schedule"[^>]*data-selector="(\d+)"[^>]*>([\s\S]*?)(?=<div[^>]*class="as_schedule"|<div[^>]*class="cinema_schedule_header|$)/g;
+  var schedRe = /<div[^>]*class="as_schedule"[^>]*data-selector=['"]\s*(\d+)\s*['"][^>]*>([\s\S]*?)(?=<div[^>]*class="as_schedule"|<div[^>]*class="cinema_schedule_header|$)/g;
   var schedMatch;
 
   while ((schedMatch = schedRe.exec(html)) !== null) {
