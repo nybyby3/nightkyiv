@@ -610,7 +610,7 @@ setSelVenue(v);
 if(mapInst.current)mapInst.current.flyTo([v.lat,v.lng],15,{duration:0.5});
 }
 
-return(<div style={{position:"relative",height:"calc(100vh - 60px)",background:"#0a0a1a",color:"#fff",display:"flex",overflow:"hidden"}}>
+return(<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,zIndex:9999,width:"100vw",height:"100vh",background:"#0a0a1a",color:"#fff",display:"flex",overflow:"hidden"}}>
 
 {/* Map area */}
 <div style={{flex:1,position:"relative",height:"100%",transition:"all 0.3s ease"}}>
