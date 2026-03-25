@@ -420,7 +420,10 @@ var mapRef=useRef(null),mapInst=useRef(null),markersRef=useRef([]),userCircle=us
 var[selCat,setSelCat]=useState(null);
 var[userLoc,setUserLoc]=useState(null);
 var[maxDist,setMaxDist]=useState(15);
-var[count,setCount]=useState(0);
+var[search,setSearch]=useState("");
+var[selVenue,setSelVenue]=useState(null);
+var[sidebarOpen,setSidebarOpen]=useState(true);
+var[mapReady,setMapReady]=useState(false);
 var cats={
 cinema:{uk:"Кінотеатри",en:"Cinemas",ico:"🎬",col:"#e74c3c"},
 theater:{uk:"Театри",en:"Theaters",ico:"🎭",col:"#9b59b6"},
@@ -430,19 +433,19 @@ books:{uk:"Книжкові",en:"Books",ico:"📚",col:"#1abc9c"},
 nightlife:{uk:"Клуби",en:"Clubs",ico:"🌙",col:"#8e44ad"},
 hookah:{uk:"Кальянні",en:"Hookah",ico:"💨",col:"#95a5a6"},
 karaoke:{uk:"Караоке",en:"Karaoke",ico:"🎤",col:"#e91e63"},
-bowling:{uk:"Боулінґ",en:"Bowling",ico:"🎳",col:"#2ecc71"},
-karting:{uk:"Картинґ",en:"Karting",ico:"🏎️",col:"#f39c12"},
+bowling:{uk:"Боулінг",en:"Bowling",ico:"🎳",col:"#2ecc71"},
+karting:{uk:"Картинг",en:"Karting",ico:"🏎️",col:"#f39c12"},
 climbing:{uk:"Скалодроми",en:"Climbing",ico:"🧗",col:"#00bcd4"},
 quests:{uk:"Квести",en:"Quests",ico:"🔐",col:"#ff5722"},
 boardgames:{uk:"Настілки",en:"Board Games",ico:"🎲",col:"#607d8b"},
 water:{uk:"Вейкборд",en:"Water",ico:"🏄",col:"#03a9f4"},
 trampoline:{uk:"Батути",en:"Trampoline",ico:"🤸",col:"#ff9800"},
 vr:{uk:"VR",en:"VR",ico:"🎮",col:"#673ab7"},
-spa:{uk:"Спа/Сауні",en:"Spa",ico:"💆",col:"#ec407a"},
+spa:{uk:"Спа/Сауни",en:"Spa",ico:"💆",col:"#ec407a"},
 creative:{uk:"Творчі",en:"Creative",ico:"🎨",col:"#26a69a"},
 parks:{uk:"Парки",en:"Parks",ico:"🌳",col:"#4caf50"},
 food:{uk:"Ресторани",en:"Food",ico:"🍽️",col:"#ff7043"},
-coffee:{uk:"Кав’ярні",en:"Coffee",ico:"☕",col:"#8d6e63"},
+coffee:{uk:"Кав'ярні",en:"Coffee",ico:"☕",col:"#8d6e63"},
 dance:{uk:"Танці",en:"Dance",ico:"💃",col:"#ab47bc"},
 shooting:{uk:"Стрільбища",en:"Shooting",ico:"🎯",col:"#78909c"}
 };
@@ -452,101 +455,258 @@ var V=[
 {n:"Planeta Kino IMAX",a:"Дніпровська наб., 12",lat:50.4268,lng:30.5635,c:"cinema"},
 {n:"Oscar (Gulliver)",a:"просп. Перемоги, 6",lat:50.4380,lng:30.5234,c:"cinema"},
 {n:"Жовтень",a:"вул. Костянтинівська, 26",lat:50.4627,lng:30.5106,c:"cinema"},
-{n:"Multiplex Prospect",a:"просп. Перемоги, 55",lat:50.4500,lng:30.4540,c:"cinema"},{n:"Театр ім. Франка",a:"пл. І. Франка, 3",lat:50.4505,lng:30.5124,c:"theater"},
-{n:"Національна опера",a:"вул. Володимирська, 50",lat:50.4497,lng:30.5147,c:"theater"},
-{n:"Театр на Подолі",a:"Андріївський узвіз, 20Б",lat:50.4613,lng:30.5165,c:"theater"},
-{n:"Театр Лесі Українки",a:"вул. Хмельницького, 5",lat:50.4449,lng:30.5211,c:"theater"},
-{n:"Молодий театр",a:"вул. Прорізна, 17",lat:50.4488,lng:30.5119,c:"theater"},
-{n:"Театр на Лівому березі",a:"Броварський просп., 25",lat:50.4525,lng:30.5872,c:"theater"},
-{n:"Мистецький Арсенал",a:"вул. Лаврська, 10-12",lat:50.4363,lng:30.5315,c:"museum"},
-{n:"NAMU",a:"вул. Грушевського, 6",lat:50.4486,lng:30.5283,c:"museum"},
-{n:"PinchukArtCentre",a:"вул. Бассейна, 1/3",lat:50.4419,lng:30.5181,c:"museum"},
-{n:"Музей Ханенків",a:"вул. Терещенківська, 15",lat:50.4435,lng:30.5098,c:"museum"},
-{n:"Нац. музей історії",a:"вул. Грушевського, 1",lat:50.4508,lng:30.5280,c:"museum"},
-{n:"Золоті ворота",a:"вул. Володимирська, 40А",lat:50.4487,lng:30.5134,c:"museum"},
-{n:"Музей Булгакова",a:"Андріївський узвіз, 13",lat:50.4598,lng:30.5153,c:"museum"},
-{n:"Жовтневий палац",a:"вул. Інститутська, 1",lat:50.4440,lng:30.5252,c:"concerts"},
-{n:"Atlas",a:"вул. Січових Стрільців, 37-41",lat:50.4566,lng:30.4881,c:"concerts"},
-{n:"Stereo Plaza",a:"вул. Лобановського, 119",lat:50.4243,lng:30.4361,c:"concerts"},
-{n:"Bel Etage",a:"вул. Шота Руставелі, 16А",lat:50.4443,lng:30.5054,c:"concerts"},
-{n:"Caribbean Club",a:"вул. Петлюри, 4",lat:50.4404,lng:30.5076,c:"concerts"},
-{n:"Книгарня Є",a:"вул. Хрещатик, 46",lat:50.4451,lng:30.5173,c:"books"},
-{n:"Книгарня Сенс",a:"вул. Велика Васильківська, 23",lat:50.4396,lng:30.5185,c:"books"},
-{n:"Антикафе Циферблат",a:"вул. Володимирська, 49А",lat:50.4487,lng:30.5125,c:"books"},
-{n:"Антикафе Бункер",a:"вул. Січових Стрільців, 55",lat:50.4560,lng:30.4850,c:"books"},
-{n:"Loft Game Bar",a:"вул. Мечникова, 9",lat:50.4404,lng:30.5301,c:"books"},{n:"Closer",a:"вул. Нижньоюрківська, 31",lat:50.4592,lng:30.4895,c:"nightlife"},
-{n:"K41",a:"просп. Бандери, 5/1",lat:50.4610,lng:30.4820,c:"nightlife"},
-{n:"SkyBar",a:"вул. Хрещатик, 5 (Гулівер)",lat:50.4382,lng:30.5228,c:"nightlife"},
-{n:"Chi",a:"пер. Рильський, 3",lat:50.4462,lng:30.5170,c:"nightlife"},
-{n:"River Port",a:"Набережне шосе, 5",lat:50.4584,lng:30.5319,c:"nightlife"},
-{n:"Smoky",a:"вул. Жилянська, 118",lat:50.4408,lng:30.4968,c:"hookah"},
-{n:"Titan Hookah",a:"вул. Шулявська, 10/12",lat:50.4555,lng:30.4612,c:"hookah"},
-{n:"Portal",a:"вул. Ружинська, 20/54",lat:50.4340,lng:30.4650,c:"hookah"},
-{n:"Mint Lounge",a:"вул. Сім’ї Кульженків, 31А",lat:50.4785,lng:30.4125,c:"hookah"},
-{n:"Ava Lounge",a:"вул. Саксаганського, 26",lat:50.4394,lng:30.5079,c:"hookah"},
-{n:"Boho",a:"вул. Федорова, 4",lat:50.4399,lng:30.5114,c:"karaoke"},
-{n:"City Entertainment",a:"просп. Оболонський, 21Б",lat:50.4960,lng:30.4970,c:"karaoke"},
-{n:"Mafia Karaoke",a:"вул. Хрещатик, 15",lat:50.4471,lng:30.5184,c:"karaoke"},
-{n:"KaraokeBar by Potap",a:"вул. Володимирська, 37",lat:50.4485,lng:30.5127,c:"karaoke"},
-{n:"Блокбастер Боулінґ",a:"просп. Бандери, 34В",lat:50.4880,lng:30.4145,c:"bowling"},
-{n:"City Bowling (Dream Town)",a:"просп. Оболонський, 21Б",lat:50.4958,lng:30.4965,c:"bowling"},
-{n:"Cosmo Bowling",a:"вул. Вадима Гетьмана, 6",lat:50.4384,lng:30.4543,c:"bowling"},
-{n:"Sam's Billiards",a:"вул. Саксаганського, 120",lat:50.4295,lng:30.4810,c:"bowling"},
-{n:"SkyMall Karting",a:"просп. Шухевича, 2",lat:50.4920,lng:30.5610,c:"karting"},
-{n:"Smart Kart",a:"просп. Глушкова, 1",lat:50.3752,lng:30.4500,c:"karting"},
-{n:"Блокбастер Картинґ",a:"просп. Бандери, 34В",lat:50.4878,lng:30.4140,c:"karting"},
-{n:"Boulder Space",a:"вул. Кіото, 25",lat:50.4758,lng:30.6275,c:"climbing"},
-{n:"Climbing Space",a:"просп. Бандери, 8",lat:50.4602,lng:30.4870,c:"climbing"},
-{n:"UP! Climbing",a:"просп. Голосіївський, 27",lat:50.4029,lng:30.5131,c:"climbing"},
-{n:"Hyperion",a:"вул. Красноткацька, 15",lat:50.4728,lng:30.4988,c:"climbing"},{n:"Laser Quest",a:"вул. Волоська, 1/17",lat:50.4367,lng:30.5444,c:"quests"},
-{n:"Escape Quest",a:"вул. Шота Руставелі, 33",lat:50.4416,lng:30.5008,c:"quests"},
-{n:"Quest Room",a:"вул. Ярославів Вал, 14Б",lat:50.4481,lng:30.5122,c:"quests"},
-{n:"Occulto Quests",a:"вул. Сагайдачного, 25Б",lat:50.4609,lng:30.5193,c:"quests"},
-{n:"Claustrophobia",a:"вул. Прорізна, 3/5",lat:50.4482,lng:30.5143,c:"quests"},
-{n:"CBGames",a:"вул. Братська, 6/13",lat:50.4624,lng:30.5195,c:"boardgames"},
-{n:"Dice",a:"вул. Прорізна, 8",lat:50.4489,lng:30.5132,c:"boardgames"},
-{n:"Hobby Games",a:"вул. Хрещатик, 44",lat:50.4451,lng:30.5168,c:"boardgames"},
-{n:"X-Park Вейкборд",a:"Труханів острів",lat:50.4605,lng:30.5560,c:"water"},
-{n:"Adrenalin Wake Club",a:"Гідропарк",lat:50.4465,lng:30.5697,c:"water"},
-{n:"Dream Beach",a:"Набережне шосе, Гідропарк",lat:50.4510,lng:30.5742,c:"water"},
-{n:"Fly Park",a:"просп. Оболонський, 21Б (Dream Town)",lat:50.4955,lng:30.4968,c:"trampoline"},
-{n:"SkyPark ВДНГ",a:"просп. Глушкова, 1",lat:50.3790,lng:30.4760,c:"trampoline"},
-{n:"Galaxy Park",a:"просп. Академіка Глушкова, 1",lat:50.3770,lng:30.4480,c:"trampoline"},
-{n:"Neopolis",a:"вул. М. Донця, 2",lat:50.3746,lng:30.4480,c:"trampoline"},
-{n:"VIAR (Cosmo Mall)",a:"вул. Вадима Гетьмана, 6",lat:50.4388,lng:30.4546,c:"vr"},
-{n:"Cube VR",a:"вул. Джона Маккейна, 20Б",lat:50.4348,lng:30.5353,c:"vr"},
-{n:"SpaceVR",a:"вул. Лютеранська, 21",lat:50.4437,lng:30.5240,c:"vr"},
-{n:"Zeus VR",a:"вул. Хмельницького, 15/2",lat:50.4445,lng:30.5216,c:"vr"},
-{n:"X-Park Банний комплекс",a:"Труханів острів",lat:50.4600,lng:30.5550,c:"spa"},
-{n:"Bali Spa",a:"вул. Джона Маккейна, 20",lat:50.4345,lng:30.5348,c:"spa"},
-{n:"Marokko Spa",a:"просп. Івасюка, 55",lat:50.5019,lng:30.4233,c:"spa"},
-{n:"SPA InterContinental",a:"вул. Жилянська, 2А",lat:50.4425,lng:30.5111,c:"spa"},{n:"Мирний Кераміст",a:"вул. Рогнідинська, 3",lat:50.4377,lng:30.5148,c:"creative"},
-{n:"Painting Bar",a:"вул. Саксаганського, 81",lat:50.4325,lng:30.4951,c:"creative"},z
-{n:"My Art Studio",a:"вул. Антоновича, 4",lat:50.4389,lng:30.5159,c:"creative"},
-{n:"Маріїнський парк",a:"вул. Грушевського",lat:50.4473,lng:30.5374,c:"parks"},
-{n:"Парк Шевченка",a:"бульв. Шевченка",lat:50.4449,lng:30.5083,c:"parks"},
-{n:"Голосіївський парк",a:"просп. Голосіївський",lat:50.3889,lng:30.5184,c:"parks"},
-{n:"Гідропарк",a:"ст. метро Гідропарк",lat:50.4468,lng:30.5680,c:"parks"},
-{n:"ВДНГ",a:"просп. Глушкова, 1",lat:50.3795,lng:30.4765,c:"parks"},
-{n:"Труханів острів",a:"Труханів острів",lat:50.4654,lng:30.5460,c:"parks"},
-{n:"Ботанічний сад",a:"вул. Тімірязєвська, 1",lat:50.4160,lng:30.5615,c:"parks"},
-{n:"Under Wonder",a:"вул. Хрещатик, 21",lat:50.4468,lng:30.5177,c:"food"},
-{n:"Kanapa",a:"Андріївський узвіз, 19А",lat:50.4614,lng:30.5170,c:"food"},
-{n:"Sam's Steak House",a:"вул. Жилянська, 37",lat:50.4370,lng:30.5030,c:"food"},
-{n:"Ostannya Barykada",a:"вул. Хрещатик, 1А",lat:50.4506,lng:30.5232,c:"food"},
-{n:"Musafir",a:"вул. Сагайдачного, 57/29",lat:50.4598,lng:30.5230,c:"food"},
-{n:"Takava",a:"вул. Алматинська, 2",lat:50.4486,lng:30.5185,c:"coffee"},
-{n:"Blue Cup Coffee",a:"вул. Хрещатик, 22",lat:50.4470,lng:30.5163,c:"coffee"},
-{n:"Druzi Café",a:"Андріївський узвіз, 2",lat:50.4596,lng:30.5160,c:"coffee"},
-{n:"Svit Kavy",a:"вул. Хрещатик, 15/4",lat:50.4472,lng:30.5186,c:"coffee"},
-{n:"DAR Dance Studio",a:"вул. Саксаганського, 87А",lat:50.4305,lng:30.4925,c:"dance"},
-{n:"Bolero Dance Club",a:"вул. Тарасівська, 40/52",lat:50.4374,lng:30.5021,c:"dance"},
-{n:"Space Dance",a:"вул. Мечникова, 14/1",lat:50.4390,lng:30.5290,c:"dance"},
-{n:"CSA Range",a:"вул. Бориспільська, 9",lat:50.4090,lng:30.6310,c:"shooting"},
-{n:"Тир Арсенал",a:"вул. Московська, 8",lat:50.4330,lng:30.5330,c:"shooting"},
-{n:"Козак Тир",a:"вул. Лейпцизька, 13",lat:50.4217,lng:30.5200,c:"shooting"}
+{n:"Multiplex Prospect",a:"просп. Перемоги, 55",lat:50.4500,lng:30.4540,c:"cinema"},
+{n:"Театр Франка",a:"вул. Івана Франка, 3",lat:50.4432,lng:30.5189,c:"theater"},
+{n:"Театр Лесі Українки",a:"вул. Хмельницького, 5",lat:50.4445,lng:30.5230,c:"theater"},
+{n:"Національна опера",a:"вул. Володимирська, 50",lat:50.4490,lng:30.5125,c:"theater"},
+{n:"Театр на Подолі",a:"Андріївський узвіз, 20Б",lat:50.4600,lng:30.5165,c:"theater"},
+{n:"Молодий театр",a:"вул. Прорізна, 17",lat:50.4475,lng:30.5175,c:"theater"},
+{n:"Національний музей історїї",a:"вул. Володимирська, 2",lat:50.4548,lng:30.5172,c:"museum"},
+{n:"PinchukArtCentre",a:"вул. Бассейна/Басейна, 1-3",lat:50.4400,lng:30.5215,c:"museum"},
+{n:"Мистецький Арсенал",a:"вул. Лаврська, 10-12",lat:50.4335,lng:30.5410,c:"museum"},
+{n:"ВДНГ",a:"просп. Академіка Глушкова, 1",lat:50.3790,lng:30.4755,c:"museum"},
+{n:"Музей води",a:"вул. Грушевського, 1В",lat:50.4515,lng:30.5285,c:"museum"},
+{n:"Київський Планетарій",a:"вул. Велика Васильківська, 57/3",lat:50.4355,lng:30.5175,c:"museum"},
+{n:"Atlas",a:"вул. Січових Стрільців, 37-41",lat:50.4560,lng:30.4965,c:"concerts"},
+{n:"Caribbean Club",a:"вул. Петлюри, 4",lat:50.4397,lng:30.5060,c:"concerts"},
+{n:"Бочка на Хрещатику",a:"Хрещатик, 19А",lat:50.4465,lng:30.5220,c:"concerts"},
+{n:"Docker Pub",a:"вул. Богатирська, 25",lat:50.4940,lng:30.4825,c:"concerts"},
+{n:"Книгарня Є",a:"вул. Хрещатик, 46",lat:50.4475,lng:30.5210,c:"books"},
+{n:"Книголав",a:"вул. Паньківська, 2",lat:50.4395,lng:30.5105,c:"books"},
+{n:"Сенс Букшоп",a:"вул. Велика Васильківська, 6",lat:50.4420,lng:30.5215,c:"books"},
+{n:"Читай-місто",a:"вул. Лесі Українки, 30А",lat:50.4310,lng:30.5380,c:"books"},
+{n:"Closer",a:"вул. Нижньоюрківська, 31",lat:50.4655,lng:30.5035,c:"nightlife"},
+{n:"CHI",a:"вул. Десятинна, 12",lat:50.4570,lng:30.5150,c:"nightlife"},
+{n:"Skybar",a:"вул. Велика Васильківська, 5",lat:50.4430,lng:30.5220,c:"nightlife"},
+{n:"D.Fleur",a:"вул. Мечникова, 3",lat:50.4365,lng:30.5340,c:"nightlife"},
+{n:"River Port",a:"Набережно-Хрещатицька, 2",lat:50.4570,lng:30.5290,c:"nightlife"},
+{n:"Вагон",a:"Набережно-Хрещатицька, 12",lat:50.4575,lng:30.5310,c:"nightlife"},
+{n:"Indigo Lounge",a:"вул. Хрещатик, 15/4",lat:50.4480,lng:30.5200,c:"hookah"},
+{n:"Hookah Place SkyBar",a:"вул. Велика Васильківська, 5",lat:50.4428,lng:30.5218,c:"hookah"},
+{n:"Мята Lounge",a:"вул. Саксаганського, 42",lat:50.4380,lng:30.5090,c:"hookah"},
+{n:"Тепло",a:"вул. Велика Васильківська, 52",lat:50.4370,lng:30.5185,c:"hookah"},
+{n:"SplitKaraoke",a:"вул. Прорізна, 3",lat:50.4485,lng:30.5180,c:"karaoke"},
+{n:"Dороги Караоке",a:"вул. Антоновича, 48",lat:50.4310,lng:30.5185,c:"karaoke"},
+{n:"Vibes Karaoke",a:"вул. Саксаганського, 7",lat:50.4415,lng:30.5140,c:"karaoke"},
+{n:"Strike Bowling",a:"просп. Берестейський, 87А",lat:50.4585,lng:30.3965,c:"bowling"},
+{n:"Sam's Bowling",a:"вул. Льва Толстого, 11А",lat:50.4390,lng:30.5140,c:"bowling"},
+{n:"Le Mans Karting",a:"вул. Новокостянтинівська, 1А",lat:50.4690,lng:30.4920,c:"karting"},
+{n:"ProKart",a:"вул. Бориспільська, 9",lat:50.4155,lng:30.6095,c:"karting"},
+{n:"Climbing SPACE",a:"вул. Велика Васильківська, 100",lat:50.4285,lng:30.5135,c:"climbing"},
+{n:"TATO climbing",a:"вул. Набережно-Лугова, 8",lat:50.4610,lng:30.4750,c:"climbing"},
+{n:"QuestPlanet",a:"вул. Хрещатик, 7/11",lat:50.4490,lng:30.5200,c:"quests"},
+{n:"Лабіринти страху",a:"вул. Прорізна, 22",lat:50.4472,lng:30.5155,c:"quests"},
+{n:"Escape Quest",a:"вул. Мечникова, 9",lat:50.4358,lng:30.5355,c:"quests"},
+{n:"Ігротека",a:"вул. Хрещатик, 46",lat:50.4477,lng:30.5212,c:"boardgames"},
+{n:"BoardGames Party",a:"вул. Саксаганського, 33",lat:50.4392,lng:30.5085,c:"boardgames"},
+{n:"X-Park Wakeboard",a:"Дніпровська наб., 14А",lat:50.4272,lng:30.5650,c:"water"},
+{n:"Dnepr Wake Park",a:"о. Гідропарк",lat:50.4430,lng:30.5750,c:"water"},
+{n:"Fly Park",a:"просп. Берестейський, 87А",lat:50.4587,lng:30.3970,c:"trampoline"},
+{n:"Sky Park",a:"вул. Бориспільська, 9",lat:50.4160,lng:30.6100,c:"trampoline"},
+{n:"Galaxy VR",a:"вул. Хрещатик, 15",lat:50.4478,lng:30.5195,c:"vr"},
+{n:"VR Motion",a:"вул. Антоновича, 50",lat:50.4305,lng:30.5180,c:"vr"},
+{n:"Термаль Star",a:"вул. Червонозоряний, 119",lat:50.3820,lng:30.4550,c:"spa"},
+{n:"Баня Forest",a:"Бориспільське шосе, 10",lat:50.4050,lng:30.6250,c:"spa"},
+{n:"San Siro Spa",a:"вул. Велика Васильківська, 55",lat:50.4363,lng:30.5175,c:"spa"},
+{n:"Вовня Арт",a:"вул. Рейтарська, 9",lat:50.4525,lng:30.5120,c:"creative"},
+{n:"Художній центр Шоколадний будинок",a:"вул. Шовковична, 17/2",lat:50.4440,lng:30.5285,c:"creative"},
+{n:"Гончарна майстерня GlazurSpace",a:"вул. Рогнідинська, 3",lat:50.4377,lng:30.5148,c:"creative"},
+{n:"Мирний Кераміст",a:"вул. Рогнідинська, 3",lat:50.4377,lng:30.5148,c:"creative"},
+{n:"Маріїнський парк",a:"вул. Михайла Грушевського",lat:50.4480,lng:30.5380,c:"parks"},
+{n:"Парк Шевченка",a:"вул. Володимирська",lat:50.4445,lng:30.5100,c:"parks"},
+{n:"Пейзажна алея",a:"вул. Десятинна",lat:50.4580,lng:30.5130,c:"parks"},
+{n:"Гідропарк",a:"острів Гідропарк",lat:50.4440,lng:30.5770,c:"parks"},
+{n:"Труханів острів",a:"Труханів острів",lat:50.4650,lng:30.5500,c:"parks"},
+{n:"Сільпо Делікатес",a:"вул. Хрещатик, 21",lat:50.4470,lng:30.5220,c:"food"},
+{n:"Kanapa",a:"вул. Андріївський узвіз, 19А",lat:50.4600,lng:30.5155,c:"food"},
+{n:"Остання Барикада",a:"вул. Маланюка, 3",lat:50.4485,lng:30.5265,c:"food"},
+{n:"Beef",a:"вул. Шота Руставелі, 11",lat:50.4360,lng:30.5295,c:"food"},
+{n:"Under Wonder",a:"вул. Велика Васильківська, 21",lat:50.4405,lng:30.5210,c:"food"},
+{n:"Blue Cup Coffee",a:"вул. Велика Васильківська, 41",lat:50.4385,lng:30.5195,c:"coffee"},
+{n:"Takava Coffee-Buffet",a:"вул. Велика Васильківська, 49/2",lat:50.4370,lng:30.5190,c:"coffee"},
+{n:"3.14 Coffee",a:"вул. Прорізна, 21",lat:50.4472,lng:30.5160,c:"coffee"},
+{n:"DRUZI café",a:"вул. Прорізна, 18",lat:50.4470,lng:30.5150,c:"coffee"},
+{n:"Salsa Studio",a:"вул. Межигірська, 23",lat:50.4640,lng:30.5070,c:"dance"},
+{n:"Kizomba Kyiv",a:"вул. Саксаганського, 43",lat:50.4383,lng:30.5075,c:"dance"},
+{n:"Dance Academy",a:"вул. Жилянська, 118",lat:50.4355,lng:30.4965,c:"dance"},
+{n:"Тир ТАК",a:"вул. Червонозоряний, 119",lat:50.3825,lng:30.4555,c:"shooting"},
+{n:"Козак Тір",a:"вул. Лейпцизька, 13",lat:50.4217,lng:30.5200,c:"shooting"}
 ];
+
 function hav(a1,g1,a2,g2){var R=6371,dL=(a2-a1)*Math.PI/180,dG=(g2-g1)*Math.PI/180,x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(a1*Math.PI/180)*Math.cos(a2*Math.PI/180)*Math.sin(dG/2)*Math.sin(dG/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+
+var filtered=useMemo(function(){
+return V.filter(function(v){
+if(selCat&&v.c!==selCat)return false;
+if(search){var s=search.toLowerCase();if(v.n.toLowerCase().indexOf(s)===-1&&v.a.toLowerCase().indexOf(s)===-1&&(cats[v.c]?cats[v.c][lang]:"").toLowerCase().indexOf(s)===-1)return false;}
+if(userLoc){var d=hav(userLoc[0],userLoc[1],v.lat,v.lng);if(d>maxDist)return false;}
+return true;
+});
+},[selCat,search,userLoc,maxDist,lang]);
+
+function updMarkers(){
+if(!mapInst.current||!window.L)return;
+markersRef.current.forEach(function(m){mapInst.current.removeLayer(m)});
+markersRef.current=[];
+filtered.forEach(function(v){
+var cat=cats[v.c]||{ico:"📍",col:"#999"};
+var isSelected=selVenue&&selVenue.n===v.n;
+var size=isSelected?44:34;
+var ic=window.L.divIcon({className:"nk-marker",html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+cat.col+';display:flex;align-items:center;justify-content:center;font-size:'+(isSelected?22:16)+'px;box-shadow:0 2px 12px '+cat.col+'66;border:2px solid '+(isSelected?'#fff':cat.col+'88')+';cursor:pointer;transition:all 0.2s">'+cat.ico+'</div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
+var mk=window.L.marker([v.lat,v.lng],{icon:ic}).addTo(mapInst.current);
+mk.bindPopup('<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+v.n+'</div><div style="color:#666;font-size:12px">'+v.a+'</div>',{className:"nk-popup"});
+mk.on("click",function(){setSelVenue(v);mapInst.current.flyTo([v.lat,v.lng],15,{duration:0.5});});
+markersRef.current.push(mk);
+});
+}
+
+useEffect(updMarkers,[filtered,selVenue]);
+
+useEffect(function(){
+if(!mapRef.current||mapInst.current)return;
+if(!window.L)return;
+var m=window.L.map(mapRef.current,{zoomControl:false,attributionControl:false}).setView([50.4501,30.5234],12);
+window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(m);
+window.L.control.zoom({position:"bottomright"}).addTo(m);
+mapInst.current=m;
+setMapReady(true);
+setTimeout(updMarkers,200);
+},[]);
+
+useEffect(function(){
+if(mapInst.current)setTimeout(function(){mapInst.current.invalidateSize()},350);
+},[sidebarOpen]);
+
+function findMe(){
+if(!navigator.geolocation)return;
+navigator.geolocation.getCurrentPosition(function(p){
+var lat=p.coords.latitude,lng=p.coords.longitude;
+setUserLoc([lat,lng]);
+if(mapInst.current){
+mapInst.current.flyTo([lat,lng],14,{duration:0.8});
+if(userCircle.current)mapInst.current.removeLayer(userCircle.current);
+userCircle.current=window.L.circle([lat,lng],{radius:maxDist*1000,color:"#a855f7",fillColor:"#a855f7",fillOpacity:0.08,weight:1}).addTo(mapInst.current);
+}
+});
+}
+
+useEffect(function(){
+if(!userCircle.current||!mapInst.current)return;
+userCircle.current.setRadius(maxDist*1000);
+},[maxDist]);
+
+var catKeys=Object.keys(cats);
+
+// Group categories for filter chips display
+var catGroups=[
+{label:lang==="uk"?"Розваги":"Entertainment",keys:["cinema","theater","concerts","nightlife","karaoke","bowling","karting","quests","vr","trampoline"]},
+{label:lang==="uk"?"Культура":"Culture",keys:["museum","books","creative","parks"]},
+{label:lang==="uk"?"Їжа та напої":"Food & Drinks",keys:["food","coffee","hookah"]},
+{label:lang==="uk"?"Активності":"Activities",keys:["climbing","water","dance","shooting","spa","boardgames"]}
+];
+
+function handleVenueClick(v){
+setSelVenue(v);
+if(mapInst.current)mapInst.current.flyTo([v.lat,v.lng],15,{duration:0.5});
+}
+
+return(<div style={{position:"relative",height:"calc(100vh - 60px)",background:"#0a0a1a",color:"#fff",display:"flex",overflow:"hidden"}}>
+
+{/* Map area */}
+<div style={{flex:1,position:"relative",height:"100%",transition:"all 0.3s ease"}}>
+<div ref={mapRef} style={{width:"100%",height:"100%"}}/>
+
+{/* Search bar overlay on map */}
+<div style={{position:"absolute",top:16,left:16,zIndex:1000,display:"flex",gap:8,alignItems:"center",maxWidth:420}}>
+<div style={{flex:1,position:"relative",minWidth:200}}>
+<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>🔍</span>
+<input value={search} onChange={function(e){setSearch(e.target.value)}} placeholder={lang==="uk"?"Пошук місць...":"Search venues..."} style={{width:"100%",padding:"12px 36px 12px 40px",borderRadius:12,border:"1px solid rgba(168,85,247,0.3)",background:"rgba(10,10,26,0.9)",backdropFilter:"blur(12px)",color:"#fff",fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+{search&&<button onClick={function(){setSearch("")}} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#888",fontSize:16,cursor:"pointer",padding:0}}>✕</button>}
+</div>
+<button onClick={findMe} title={lang==="uk"?"Моя локація":"My location"} style={{width:44,height:44,borderRadius:12,border:"1px solid rgba(168,85,247,0.3)",background:userLoc?"rgba(168,85,247,0.3)":"rgba(10,10,26,0.9)",backdropFilter:"blur(12px)",color:"#fff",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>📍</button>
+</div>
+
+{/* Category filter chips on map */}
+<div style={{position:"absolute",top:72,left:16,zIndex:999,display:"flex",gap:6,flexWrap:"wrap",maxWidth:sidebarOpen?"calc(100% - 420px)":"calc(100% - 32px)"}}>
+<button onClick={function(){setSelCat(null)}} style={{padding:"7px 14px",borderRadius:20,border:"1px solid "+(selCat===null?"#a855f7":"rgba(255,255,255,0.12)"),background:selCat===null?"rgba(168,85,247,0.25)":"rgba(10,10,26,0.85)",backdropFilter:"blur(8px)",color:selCat===null?"#c084fc":"#bbb",fontSize:12,cursor:"pointer",fontWeight:selCat===null?600:400,whiteSpace:"nowrap"}}>{lang==="uk"?"Усі":"All"} ({filtered.length})</button>
+{catKeys.map(function(k){var c=cats[k];var cnt=V.filter(function(v){return v.c===k}).length;return <button key={k} onClick={function(){setSelCat(selCat===k?null:k)}} style={{padding:"7px 12px",borderRadius:20,border:"1px solid "+(selCat===k?c.col+"88":"rgba(255,255,255,0.1)"),background:selCat===k?c.col+"22":"rgba(10,10,26,0.85)",backdropFilter:"blur(8px)",color:selCat===k?c.col:"#999",fontSize:12,cursor:"pointer",fontWeight:selCat===k?600:400,whiteSpace:"nowrap",transition:"all 0.2s"}}>{c.ico+" "+c[lang]}</button>})}
+</div>
+
+{/* Distance slider when geolocated */}
+{userLoc&&<div style={{position:"absolute",bottom:16,left:16,zIndex:999,background:"rgba(10,10,26,0.9)",backdropFilter:"blur(12px)",borderRadius:12,padding:"10px 16px",border:"1px solid rgba(168,85,247,0.2)",display:"flex",alignItems:"center",gap:12,fontSize:13}}>
+<span style={{color:"#aaa"}}>{lang==="uk"?"Радіус":"Radius"}</span>
+<input type="range" min="1" max="30" value={maxDist} onChange={function(e){setMaxDist(Number(e.target.value))}} style={{width:100,accentColor:"#a855f7"}}/>
+<span style={{color:"#c084fc",fontWeight:600,minWidth:40}}>{maxDist} km</span>
+</div>}
+
+{/* Toggle sidebar button */}
+<button onClick={function(){setSidebarOpen(!sidebarOpen)}} style={{position:"absolute",bottom:16,right:sidebarOpen?408:16,zIndex:1000,padding:"10px 16px",borderRadius:12,border:"1px solid rgba(168,85,247,0.3)",background:"rgba(10,10,26,0.9)",backdropFilter:"blur(12px)",color:"#c084fc",fontSize:13,cursor:"pointer",fontWeight:600,transition:"right 0.3s ease",display:"flex",alignItems:"center",gap:6}}>
+{sidebarOpen?(lang==="uk"?"Сховати список ▶":"Hide List ▶"):(lang==="uk"?"◀ Показати список":"◀ Show List")}
+</button>
+</div>
+
+{/* Right sidebar */}
+<div style={{width:sidebarOpen?390:0,minWidth:sidebarOpen?390:0,height:"100%",background:"#0d0d20",borderLeft:sidebarOpen?"1px solid rgba(168,85,247,0.15)":"none",transition:"all 0.3s ease",overflow:"hidden",display:"flex",flexDirection:"column"}}>
+
+{/* Sidebar header */}
+<div style={{padding:"16px 20px 12px",borderBottom:"1px solid rgba(168,85,247,0.1)",flexShrink:0}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+<h3 style={{margin:0,fontSize:18,fontWeight:700,background:"linear-gradient(135deg,#a855f7,#6366f1)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{lang==="uk"?"Місця":"Places"}</h3>
+<span style={{fontSize:13,color:"#888"}}>{filtered.length} {lang==="uk"?"знайдено":"found"}</span>
+</div>
+</div>
+
+{/* Venue cards scrollable list */}
+<div style={{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:10}} className="nk-sidebar-scroll">
+{filtered.length===0&&<div style={{textAlign:"center",padding:"40px 20px",color:"#555"}}>
+<div style={{fontSize:40,marginBottom:12}}>🔍</div>
+<div style={{fontSize:14}}>{lang==="uk"?"Нічого не знайдено":"No venues found"}</div>
+<div style={{fontSize:12,color:"#444",marginTop:4}}>{lang==="uk"?"Спробуйте інший пошук":"Try a different search"}</div>
+</div>}
+{filtered.map(function(v,i){
+var cat=cats[v.c]||{ico:"📍",col:"#999",uk:"",en:""};
+var isActive=selVenue&&selVenue.n===v.n;
+return <div key={i} onClick={function(){handleVenueClick(v)}} style={{background:isActive?"rgba(168,85,247,0.12)":"rgba(255,255,255,0.03)",border:"1px solid "+(isActive?"rgba(168,85,247,0.4)":"rgba(255,255,255,0.06)"),borderRadius:14,padding:14,cursor:"pointer",transition:"all 0.2s"}}>
+{/* Category badge */}
+<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 10px",borderRadius:12,background:cat.col+"18",border:"1px solid "+cat.col+"33",marginBottom:10}}>
+<span style={{fontSize:12}}>{cat.ico}</span>
+<span style={{fontSize:11,color:cat.col,fontWeight:600}}>{cat[lang]}</span>
+</div>
+{/* Venue name */}
+<div style={{fontSize:15,fontWeight:600,marginBottom:6,lineHeight:1.3}}>{v.n}</div>
+{/* Address */}
+<div style={{fontSize:12,color:"#888",display:"flex",alignItems:"flex-start",gap:6}}>
+<span style={{color:"#a855f7",fontSize:13,flexShrink:0,marginTop:1}}>📍</span>
+<span>{v.a}</span>
+</div>
+{/* Distance if available */}
+{userLoc&&<div style={{fontSize:11,color:"#a855f7",marginTop:6}}>📏 {hav(userLoc[0],userLoc[1],v.lat,v.lng).toFixed(1)} km</div>}
+{/* Action buttons when selected */}
+{isActive&&<div style={{display:"flex",gap:8,marginTop:10}}>
+<a href={"https://www.google.com/maps/dir/?api=1&destination="+v.lat+","+v.lng} target="_blank" rel="noopener noreferrer" style={{flex:1,padding:"8px 0",borderRadius:10,background:"linear-gradient(135deg,#a855f7,#7c3aed)",color:"#fff",textDecoration:"none",textAlign:"center",fontSize:12,fontWeight:600}}>🧭 {lang==="uk"?"Маршрут":"Directions"}</a>
+<a href={"https://www.google.com/search?q="+encodeURIComponent(v.n+" Kyiv")} target="_blank" rel="noopener noreferrer" style={{flex:1,padding:"8px 0",borderRadius:10,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",color:"#ccc",textDecoration:"none",textAlign:"center",fontSize:12,fontWeight:600}}>🔍 {lang==="uk"?"Детальніше":"Details"}</a>
+</div>}
+</div>;
+})}
+</div>
+</div>
+
+<style>{"\
+.nk-marker{background:none!important;border:none!important}\
+.nk-marker div:hover{transform:scale(1.15)!important;z-index:999!important}\
+.nk-popup .leaflet-popup-content-wrapper{background:#1a1a2e;color:#fff;border-radius:10px;border:1px solid rgba(168,85,247,0.2);box-shadow:0 4px 20px rgba(0,0,0,0.5)}\
+.nk-popup .leaflet-popup-tip{background:#1a1a2e}\
+.nk-popup .leaflet-popup-close-button{color:#888}\
+.leaflet-control-zoom a{background:rgba(10,10,26,0.9)!important;color:#fff!important;border-color:rgba(168,85,247,0.2)!important;backdrop-filter:blur(8px)}\
+.leaflet-control-zoom a:hover{background:rgba(168,85,247,0.3)!important}\
+.nk-sidebar-scroll::-webkit-scrollbar{width:4px}\
+.nk-sidebar-scroll::-webkit-scrollbar-track{background:transparent}\
+.nk-sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(168,85,247,0.3);border-radius:4px}\
+.nk-sidebar-scroll::-webkit-scrollbar-thumb:hover{background:rgba(168,85,247,0.5)}\
+@media(max-width:768px){.nk-sidebar-mobile{position:absolute!important;right:0;top:0;bottom:0;z-index:1001;width:100%!important;min-width:100%!important}}\
+"}</style>
+</div>);
+}
 var updMarkers=useCallback(function(){
 if(!mapInst.current)return;
 markersRef.current.forEach(function(m){mapInst.current.removeLayer(m)});
