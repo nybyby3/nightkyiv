@@ -566,7 +566,7 @@ useEffect(function(){
 if(!mapRef.current||mapInst.current)return;
 if(!window.L)return;
 var m=window.L.map(mapRef.current,{zoomControl:false,attributionControl:false}).setView([50.4501,30.5234],12);
-window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(m);
+window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(m);
 window.L.control.zoom({position:"bottomright"}).addTo(m);
 mapInst.current=m;
 setMapReady(true);
