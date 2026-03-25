@@ -80,10 +80,20 @@ export default async function handler(req, res) {
   }
 }
 
+function decodeEntities(str) {
+  return str.replace(/&#(\d+);/g, function(m, n) { return String.fromCharCode(n); })
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ').replace(/&mdash;/g, 'â').replace(/&ndash;/g, 'â')
+    .replace(/&laquo;/g, 'Â«').replace(/&raquo;/g, 'Â»')
+    .replace(/&rsquo;/g, ''').replace(/&ldquo;/g, '"').replace(/&rdquo;/g, '"')
+    .replace(/&hellip;/g, 'â¦').trim();
+}
+
 function parseMovie(html, id, fallbackTitle) {
   // Title from <h1>
   var titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
-  var title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : fallbackTitle;
+  var title = titleMatch ? decodeEntities(titleMatch[1].replace(/<[^>]*>/g, '').trim()) : fallbackTitle;
 
   // Poster from <div class="poster_container"><img src="/images/...">
   var posterMatch = html.match(/<div[^>]*class="poster_container"[^>]*>[\s\S]*?<img[^>]*src="(\/images\/[^"]+)"/);
@@ -113,7 +123,7 @@ function parseMovie(html, id, fallbackTitle) {
 
   // Description
   var descMatch = html.match(/<div[^>]*class="movie_description"[^>]*>([\s\S]*?)<\/div>/);
-  var desc = descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '';
+  var desc = descMatch ? decodeEntities(descMatch[1].replace(/<[^>]*>/g, '').trim()) : '';
 
   // URL
   var url = 'https://multiplex.ua/movie/' + id;
