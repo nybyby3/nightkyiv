@@ -84,10 +84,10 @@ function decodeEntities(str) {
   return str.replace(/&#(\d+);/g, function(m, n) { return String.fromCharCode(n); })
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ').replace(/&mdash;/g, '—').replace(/&ndash;/g, '–')
-    .replace(/&laquo;/g, '«').replace(/&raquo;/g, '»')
-    .replace(/&rsquo;/g, ''').replace(/&ldquo;/g, '"').replace(/&rdquo;/g, '"')
-    .replace(/&hellip;/g, '…').trim();
+    .replace(/&nbsp;/g, ' ').replace(/&mdash;/g, '\u2014').replace(/&ndash;/g, '\u2013')
+    .replace(/&laquo;/g, '\u00AB').replace(/&raquo;/g, '\u00BB')
+    .replace(/&rsquo;/g, '\u2019').replace(/&ldquo;/g, '\u201C').replace(/&rdquo;/g, '\u201D')
+    .replace(/&hellip;/g, '\u2026').trim();
 }
 
 function parseMovie(html, id, fallbackTitle) {
