@@ -707,69 +707,6 @@ return <div key={i} onClick={function(){handleVenueClick(v)}} style={{background
 "}</style>
 </div>);
 }
-var updMarkers=useCallback(function(){
-if(!mapInst.current)return;
-markersRef.current.forEach(function(m){mapInst.current.removeLayer(m)});
-markersRef.current=[];
-var n=0;
-V.forEach(function(v){
-if(selCat&&v.c!==selCat)return;
-if(userLoc&&hav(userLoc.lat,userLoc.lng,v.lat,v.lng)>maxDist)return;
-var mk=window.L.circleMarker([v.lat,v.lng],{radius:7,fillColor:cats[v.c].col,color:"#fff",weight:1.5,opacity:0.9,fillOpacity:0.85});
-mk.bindPopup('<div style="font-size:13px;min-width:150px"><b>'+v.n+'</b><br/><span style="color:#666">'+v.a+'</span><br/><span style="color:'+cats[v.c].col+'">'+cats[v.c].ico+' '+cats[v.c][lang]+'</span></div>');
-mapInst.current.addLayer(mk);
-markersRef.current.push(mk);
-n++;
-});
-setCount(n);
-},[selCat,userLoc,maxDist,lang]);
-var findMe=useCallback(function(){
-if(!navigator.geolocation)return;
-navigator.geolocation.getCurrentPosition(function(p){
-var lat=p.coords.latitude,lng=p.coords.longitude;
-setUserLoc({lat:lat,lng:lng});
-if(mapInst.current){
-mapInst.current.setView([lat,lng],13);
-if(userCircle.current)mapInst.current.removeLayer(userCircle.current);
-userCircle.current=window.L.circle([lat,lng],{radius:maxDist*1000,color:"#a259ff",fillColor:"#a259ff",fillOpacity:0.08,weight:1}).addTo(mapInst.current);
-window.L.marker([lat,lng]).addTo(mapInst.current).bindPopup(lang==="uk"?"Ви тут":"You are here").openPopup();
-}
-});
-},[maxDist,lang]);
-useEffect(function(){
-if(!mapRef.current||!window.L)return;
-if(mapInst.current)mapInst.current.remove();
-mapInst.current=window.L.map(mapRef.current,{center:[50.45,30.52],zoom:12,zoomControl:true});
-window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"CartoDB",maxZoom:19}).addTo(mapInst.current);
-return function(){if(mapInst.current){mapInst.current.remove();mapInst.current=null;}};
-},[]);
-useEffect(function(){updMarkers();},[updMarkers]);
-useEffect(function(){
-if(userLoc&&userCircle.current&&mapInst.current){
-mapInst.current.removeLayer(userCircle.current);
-userCircle.current=window.L.circle([userLoc.lat,userLoc.lng],{radius:maxDist*1000,color:"#a259ff",fillColor:"#a259ff",fillOpacity:0.08,weight:1}).addTo(mapInst.current);
-}
-},[maxDist,userLoc]);
-var catKeys=Object.keys(cats);
-return(<div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 60px)",background:"#1a1333",color:"#fff"}}>
-<div style={{padding:"12px 15px 8px",flexShrink:0}}>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-<span style={{fontSize:14,opacity:0.7}}>{lang==="uk"?"Розваги Києва на карті":"Kyiv entertainment map"}</span>
-<span style={{fontSize:13,color:"#a259ff",fontWeight:700}}>{count} {lang==="uk"?"місць":"places"}</span>
-</div>
-<div style={{overflowX:"auto",display:"flex",gap:6,paddingBottom:6,WebkitOverflowScrolling:"touch"}}>
-<button onClick={function(){setSelCat(null)}} style={{padding:"6px 14px",borderRadius:20,border:"none",background:selCat===null?"#a259ff":"rgba(255,255,255,0.08)",color:"#fff",cursor:"pointer",whiteSpace:"nowrap",fontSize:12,fontWeight:selCat===null?700:400,boxShadow:selCat===null?"0 0 10px rgba(162,89,255,0.5)":"none",transition:"all 0.2s"}}>{lang==="uk"?"Усі":"All"}</button>
-{catKeys.map(function(k){return(<button key={k} onClick={function(){setSelCat(selCat===k?null:k)}} style={{padding:"6px 12px",borderRadius:20,border:"none",background:selCat===k?cats[k].col:"rgba(255,255,255,0.08)",color:"#fff",cursor:"pointer",whiteSpace:"nowrap",fontSize:12,fontWeight:selCat===k?700:400,boxShadow:selCat===k?"0 0 10px "+cats[k].col:"none",transition:"all 0.2s"}}>{cats[k].ico+" "+cats[k][lang]}</button>)})}
-</div>
-<div style={{display:"flex",gap:8,alignItems:"center",marginTop:6}}>
-<span style={{fontSize:11,opacity:0.5,minWidth:24}}>{maxDist}км</span>
-<input type="range" min="1" max="15" value={maxDist} onChange={function(e){setMaxDist(parseInt(e.target.value))}} style={{flex:1,accentColor:"#a259ff",height:4}}/>
-<button onClick={findMe} style={{padding:"5px 10px",borderRadius:8,border:"1px solid rgba(162,89,255,0.4)",background:"rgba(162,89,255,0.15)",color:"#a259ff",cursor:"pointer",fontSize:12,fontWeight:600,whiteSpace:"nowrap"}}>{"📍"} {lang==="uk"?"Знайти мене":"Find me"}</button>
-</div>
-</div>
-<div ref={mapRef} style={{flex:1,minHeight:0}}/>
-</div>);
-}
 
 /* -- APP -- */
 export default function App(){const[lang,setLang]=useState("uk");const[page,setPage]=useState("home");const[mounted,setMounted]=useState(false);const t=T[lang];useEffect(()=>{setMounted(true)},[]);
