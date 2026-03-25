@@ -552,7 +552,7 @@ filtered.forEach(function(v){
 var cat=cats[v.c]||{ico:"📍",col:"#999"};
 var isSelected=selVenue&&selVenue.n===v.n;
 var size=isSelected?44:34;
-var ic=window.L.divIcon({className:"nk-marker",html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+cat.col+';display:flex;align-items:center;justify-content:center;font-size:'+(isSelected?22:16)+'px;box-shadow:0 2px 12px '+cat.col+'66;border:2px solid '+(isSelected?'#fff':cat.col+'88')+';cursor:pointer;transition:all 0.2s">'+cat.ico+'</div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
+var ic=window.L.divIcon({className:"nk-marker",html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+cat.col+';display:flex;align-items:center;justify-content:center;font-size:'+(isSelected?24:18)+'px;box-shadow:0 0 8px '+cat.col+'88,0 0 20px '+cat.col+'44,0 2px 6px rgba(0,0,0,0.5);border:2px solid '+(isSelected?'#fff':cat.col+'88')+';cursor:pointer;transition:all 0.2s">'+cat.ico+'</div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
 var mk=window.L.marker([v.lat,v.lng],{icon:ic}).addTo(mapInst.current);
 mk.bindPopup('<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+v.n+'</div><div style="color:#666;font-size:12px">'+v.a+'</div>',{className:"nk-popup"});
 mk.on("click",function(){setSelVenue(v);mapInst.current.flyTo([v.lat,v.lng],15,{duration:0.5});});
