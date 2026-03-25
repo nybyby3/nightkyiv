@@ -91,7 +91,7 @@ const[animDir,setAnimDir]=useState(1);
 const prev=useCallback(()=>{setAnimDir(-1);setTimeout(()=>setStep(s=>Math.max(0,s-1)),10);},[]);
 const next=useCallback((s)=>{setAnimDir(1);setTimeout(()=>setStep(s),10);},[]);
 const reset=useCallback(()=>{setAnimDir(-1);setStep(0);setGrp(null);setTempo(null);setCat(null);setSubcat(null);setSelVenue(null);},[]);
-const avCats=useMemo(()=>{const filtered=allVenues.filter(v=>true);const counts={};filtered.forEach(v=>{counts[v.c]=(counts[v.c]||0)+1;});return counts;},[allVenues,grp,tempo]);
+const avCats=useMemo(()=>{const filtered=allVenues.filter(v=>cc[v.c]);const counts={};filtered.forEach(v=>{counts[v.c]=(counts[v.c]||0)+1;});return counts;},[allVenues,grp,tempo]);
 const subResults=useMemo(()=>{if(!cat||!sc[cat])return{};const filtered=allVenues.filter(v=>true&&v.c===cat);const groups={};Object.entries(sc[cat]).forEach(([key,val])=>{const items=filtered.filter(v=>v.s===key);if(items.length>0)groups[key]={...val,items};});return groups;},[allVenues,grp,tempo,cat,sc]);
 const results=useMemo(()=>{let filtered=allVenues.filter(v=>true&&v.c===cat);if(subcat&&sc[cat]&&sc[cat][subcat]){filtered=filtered.filter(v=>v.s===subcat);}return filtered.sort((a,b)=>{if(sortBy==="price")return(a.p-b.p)*dir;return a[lang].localeCompare(b[lang])*dir;});},[allVenues,grp,tempo,cat,subcat,sortBy,dir,lang,sc]);
 const slideAnim=animDir>0?"slideIn":"slideOut";
