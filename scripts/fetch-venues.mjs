@@ -1,4 +1,4 @@
-import{writeFileSync as w}from"fs";
+import{writeFileSync as w,mkdirSync as mk}from"fs";
 const bb="50.35,30.25,50.59,30.83";
 const queries=[
   `[out:json][timeout:90];(node["amenity"~"restaurant|cafe|bar|pub|nightclub|theatre|cinema|museum|arts_centre|fast_food|biergarten|food_court|ice_cream|casino|community_centre|karaoke|library|place_of_worship|pharmacy|marketplace|bank|post_office|clinic|dentist|veterinary|car_wash|fuel"](${bb}););out tags;`,
@@ -60,7 +60,7 @@ async function main(){
   });
   venues.sort((a,b)=>{const sa=(a.a?1:0)+(a.p?1:0)+(a.w?1:0);const sb=(b.a?1:0)+(b.p?1:0)+(b.w?1:0);return sb-sa});
   const top=venues.slice(0,10000);
-  w("public/data.json",JSON.stringify(top));
+  mk("public",{recursive:true});w("public/data.json",JSON.stringify(top));
   console.log(`Wrote ${top.length} venues to public/data.json`);
 }
 main().catch(e=>console.error(e));
