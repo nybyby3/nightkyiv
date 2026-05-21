@@ -1,0 +1,414 @@
+{
+  "venues": [
+    {
+      "id": "sport",
+      "uk": "Спорт",
+      "en": "Sports",
+      "ic": "🏋️",
+      "color": "#4fc3f7",
+      "subs": [
+        {
+          "id": "martial_arts",
+          "uk": "Бойові мистецтва",
+          "en": "Martial Arts",
+          "ic": "🥋"
+        },
+        {
+          "id": "team",
+          "uk": "Командні",
+          "en": "Team Sports",
+          "ic": "⚽"
+        },
+        {
+          "id": "racket",
+          "uk": "Ракеткові",
+          "en": "Racket",
+          "ic": "🎾"
+        },
+        {
+          "id": "water",
+          "uk": "Водні",
+          "en": "Water",
+          "ic": "🏊"
+        },
+        {
+          "id": "winter",
+          "uk": "Зимові",
+          "en": "Winter",
+          "ic": "⛷️"
+        },
+        {
+          "id": "fitness",
+          "uk": "Фітнес",
+          "en": "Fitness",
+          "ic": "💪"
+        },
+        {
+          "id": "extreme",
+          "uk": "Екстрім",
+          "en": "Extreme",
+          "ic": "🤸"
+        },
+        {
+          "id": "athletics",
+          "uk": "Легка атлетика",
+          "en": "Athletics",
+          "ic": "🏃"
+        },
+        {
+          "id": "aim_sports",
+          "uk": "Стрільба & гольф",
+          "en": "Aim sports",
+          "ic": "🎯"
+        },
+        {
+          "id": "equestrian",
+          "uk": "Кінний спорт",
+          "en": "Equestrian",
+          "ic": "🐎"
+        },
+        {
+          "id": "motor",
+          "uk": "Мотоспорт",
+          "en": "Motorsport",
+          "ic": "🏎️"
+        }
+      ]
+    },
+    {
+      "id": "nature",
+      "uk": "Природа",
+      "en": "Nature",
+      "ic": "🌳",
+      "color": "#3ecf8e",
+      "subs": [
+        {
+          "id": "parks",
+          "uk": "Парки",
+          "en": "Parks",
+          "ic": "🌳"
+        },
+        {
+          "id": "picnic_beach",
+          "uk": "Пляжі та пікніки",
+          "en": "Beaches & Picnics",
+          "ic": "🏖️"
+        },
+        {
+          "id": "hiking",
+          "uk": "Походи",
+          "en": "Hiking",
+          "ic": "🥾"
+        },
+        {
+          "id": "nature_obs",
+          "uk": "Спостереження",
+          "en": "Observation",
+          "ic": "🔭"
+        },
+        {
+          "id": "fish_hunt",
+          "uk": "Риболовля та полювання",
+          "en": "Fishing & Hunting",
+          "ic": "🎣"
+        },
+        {
+          "id": "zoo",
+          "uk": "Зоопарки",
+          "en": "Zoo / Aquariums",
+          "ic": "🦁"
+        },
+        {
+          "id": "ecotour",
+          "uk": "Туризм",
+          "en": "Tourism",
+          "ic": "🗺️"
+        }
+      ]
+    },
+    {
+      "id": "culture",
+      "uk": "Культура",
+      "en": "Culture",
+      "ic": "🎭",
+      "color": "#a259ff",
+      "subs": [
+        {
+          "id": "museums",
+          "uk": "Музеї",
+          "en": "Museums",
+          "ic": "🏛️"
+        },
+        {
+          "id": "galleries",
+          "uk": "Галереї",
+          "en": "Galleries",
+          "ic": "🖼️"
+        },
+        {
+          "id": "theatre",
+          "uk": "Театри",
+          "en": "Theatres",
+          "ic": "🎭"
+        },
+        {
+          "id": "concerts",
+          "uk": "Концерти",
+          "en": "Concerts",
+          "ic": "🎵"
+        },
+        {
+          "id": "standup",
+          "uk": "Стенд-ап",
+          "en": "Stand-up",
+          "ic": "🎤"
+        },
+        {
+          "id": "libraries",
+          "uk": "Бібліотеки",
+          "en": "Libraries",
+          "ic": "📚"
+        },
+        {
+          "id": "worship",
+          "uk": "Храми",
+          "en": "Worship",
+          "ic": "⛪"
+        },
+        {
+          "id": "landmarks",
+          "uk": "Визначні місця",
+          "en": "Landmarks",
+          "ic": "📍"
+        },
+        {
+          "id": "art",
+          "uk": "Стрит-арт та живопис",
+          "en": "Street art",
+          "ic": "🎨"
+        }
+      ]
+    },
+    {
+      "id": "nightlife",
+      "uk": "Нічне життя",
+      "en": "Nightlife",
+      "ic": "🌙",
+      "color": "#ff6bca",
+      "subs": [
+        {
+          "id": "bars",
+          "uk": "Бари",
+          "en": "Bars",
+          "ic": "🍸"
+        },
+        {
+          "id": "clubs",
+          "uk": "Нічні клуби",
+          "en": "Clubs",
+          "ic": "🪩"
+        },
+        {
+          "id": "hookah",
+          "uk": "Кальянні",
+          "en": "Hookah",
+          "ic": "💨"
+        },
+        {
+          "id": "wine",
+          "uk": "Винні дегустації",
+          "en": "Wine tastings",
+          "ic": "🍷"
+        }
+      ]
+    },
+    {
+      "id": "food",
+      "uk": "Їжа",
+      "en": "Food",
+      "ic": "🍽️",
+      "color": "#ff6b6b",
+      "subs": [
+        {
+          "id": "restaurants",
+          "uk": "Ресторани",
+          "en": "Restaurants",
+          "ic": "🍽️"
+        }
+      ]
+    },
+    {
+      "id": "entertainment",
+      "uk": "Розваги",
+      "en": "Entertainment",
+      "ic": "🎲",
+      "color": "#ff9f43",
+      "subs": [
+        {
+          "id": "bowling_darts",
+          "uk": "Боулінг & дартс",
+          "en": "Bowling & darts",
+          "ic": "🎳"
+        },
+        {
+          "id": "quests",
+          "uk": "Квести",
+          "en": "Escape rooms",
+          "ic": "🗝️"
+        },
+        {
+          "id": "battle",
+          "uk": "Пейнтбол & лазертаг",
+          "en": "Paintball",
+          "ic": "🎯"
+        },
+        {
+          "id": "arcade",
+          "uk": "Аркади",
+          "en": "Arcades",
+          "ic": "🕹️"
+        },
+        {
+          "id": "board",
+          "uk": "Настільні ігри & шахи",
+          "en": "Board games",
+          "ic": "♟️"
+        },
+        {
+          "id": "trampoline",
+          "uk": "Батути",
+          "en": "Trampolines",
+          "ic": "🤸"
+        },
+        {
+          "id": "masterclass",
+          "uk": "Майстер-класи",
+          "en": "Masterclasses",
+          "ic": "🎓"
+        },
+        {
+          "id": "urban",
+          "uk": "Урбан-експлоринг",
+          "en": "Urban exploring",
+          "ic": "🏚️"
+        },
+        {
+          "id": "kids",
+          "uk": "Для дітей",
+          "en": "For kids",
+          "ic": "🧒"
+        }
+      ]
+    },
+    {
+      "id": "dance",
+      "uk": "Танці",
+      "en": "Dance",
+      "ic": "💃",
+      "color": "#36d1c4",
+      "subs": [
+        {
+          "id": "ballroom",
+          "uk": "Бальні",
+          "en": "Ballroom",
+          "ic": "💃"
+        },
+        {
+          "id": "latin",
+          "uk": "Латино",
+          "en": "Latin",
+          "ic": "🪇"
+        },
+        {
+          "id": "street",
+          "uk": "Стріт",
+          "en": "Street",
+          "ic": "🕺"
+        },
+        {
+          "id": "folk",
+          "uk": "Народні",
+          "en": "Folk",
+          "ic": "🥁"
+        }
+      ]
+    },
+    {
+      "id": "hobby",
+      "uk": "Хобі вдома",
+      "en": "Hobbies",
+      "ic": "🎨",
+      "color": "#f7b731",
+      "subs": [
+        {
+          "id": "music",
+          "uk": "Музика",
+          "en": "Music",
+          "ic": "🎸"
+        },
+        {
+          "id": "crafts",
+          "uk": "Ремесла",
+          "en": "Crafts",
+          "ic": "🧵"
+        },
+        {
+          "id": "garden",
+          "uk": "Сад та рослини",
+          "en": "Garden",
+          "ic": "🌱"
+        },
+        {
+          "id": "volunteer",
+          "uk": "Волонтерство",
+          "en": "Volunteer",
+          "ic": "🤝"
+        }
+      ]
+    }
+  ],
+  "recipes": [
+    {
+      "id": "bake",
+      "uk": "Випічка та хліб",
+      "en": "Baking",
+      "ic": "🍞"
+    },
+    {
+      "id": "meat",
+      "uk": "М'ясо та гриль",
+      "en": "Meat & grill",
+      "ic": "🥩"
+    },
+    {
+      "id": "world",
+      "uk": "Кухні світу",
+      "en": "World cuisines",
+      "ic": "🌍"
+    },
+    {
+      "id": "drinks",
+      "uk": "Напої",
+      "en": "Drinks",
+      "ic": "☕"
+    },
+    {
+      "id": "preserves",
+      "uk": "Соуси та заготовки",
+      "en": "Preserves & sauces",
+      "ic": "🥫"
+    },
+    {
+      "id": "chocolate",
+      "uk": "Шоколад та солодке",
+      "en": "Sweets",
+      "ic": "🍫"
+    },
+    {
+      "id": "plating",
+      "uk": "Подача та стайлінг",
+      "en": "Plating",
+      "ic": "🍱"
+    }
+  ]
+}

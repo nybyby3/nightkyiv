@@ -1,12 +1,14 @@
 {
   "name": "nightkyiv",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/fetch-venues.mjs && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "extract-data": "python3 scripts/extract_data.py",
+    "geocode": "node scripts/geocode.mjs"
   },
   "dependencies": {
     "react": "^18.2.0",
