@@ -86,60 +86,98 @@ export default function MapView({ lang, dict }) {
     if (!ready) return;
     const m = mapRef.current; if (!m || !window.L) return;
     if (layerRef.current) m.removeLayer(layerRef.current);
-    const group = window.L.layerGroup().addTo(m);
+
+    // Use markercluster if available (loaded from CDN). Falls back to a plain
+    // layer group if for some reason it didn't load — still works.
+    const group = window.L.markerClusterGroup
+      ? window.L.markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          maxClusterRadius: 50,
+          iconCreateFunction: (cluster) => {
+            const count = cluster.getChildCount();
+            const size = count < 10 ? 36 : count < 50 ? 44 : 54;
+            return window.L.divIcon({
+              className: "nk-cluster",
+              html: `<div style="
+                width:${size}px;height:${size}px;border-radius:50%;
+                background: linear-gradient(135deg, ${colors.primary}, ${colors.accent});
+                border: 3px solid #fff;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.3), 0 0 0 4px rgba(162,89,255,0.15);
+                display:flex;align-items:center;justify-content:center;
+                color:#fff;font-weight:700;font-size:${count < 100 ? 14 : 12}px;
+                font-family:system-ui;
+              ">${count}</div>`,
+              iconSize: [size, size], iconAnchor: [size/2, size/2],
+            });
+          },
+        })
+      : window.L.layerGroup();
+    group.addTo(m);
     layerRef.current = group;
 
-    // Pre-compute the icon emoji per category (matches categories.json).
+    // Per-category emoji — matches categories.json.
     const catIcons = {
       sport:"🏋️", nature:"🌳", culture:"🎭", nightlife:"🌙",
       food:"🍽️", entertainment:"🎲", dance:"💃", hobby:"🎨",
     };
+    const markers = [];
     visible.forEach(v => {
       const [lat, lng] = getCoords(v, coords);
       const col = catColor[v.category] || colors.primary;
       const isSel = selected?.id === v.id;
       const flag = v.flagship;
-      const size = isSel ? 44 : flag ? 36 : 30;
-      const emoji = flag ? "🏆" : catIcons[v.category] || "📍";
+      const size = isSel ? 44 : flag ? 38 : 32;
+      const emoji = catIcons[v.category] || "📍";
       // Bright pin: filled circle with thick white ring + soft drop shadow.
-      // Pin "tail" pointing down from the bottom for that map-pin look.
+      // Flagships get a gold ring + tiny 🏆 corner badge.
       const html = `
         <div style="
-          position:relative;width:${size}px;height:${size}px;cursor:pointer;
-          transform: translateY(-${size/2}px);
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35));
+          position:relative;width:${size}px;height:${size + 6}px;cursor:pointer;
+          filter: drop-shadow(0 3px 5px rgba(0,0,0,0.32));
         ">
           <div style="
-            position:absolute; left:50%; top:50%;
-            width:${size}px; height:${size}px; transform:translate(-50%,-50%);
+            position:absolute; left:0; top:0;
+            width:${size}px; height:${size}px;
             border-radius:50%;
-            background: radial-gradient(circle at 30% 30%, ${col} 0%, ${col} 60%, ${shade(col,-15)} 100%);
-            border: 3px solid #fff;
+            background: radial-gradient(circle at 30% 30%, ${shade(col,15)} 0%, ${col} 65%, ${shade(col,-15)} 100%);
+            border: 3px solid ${flag ? "#ffd24a" : "#fff"};
             display:flex; align-items:center; justify-content:center;
-            font-size:${isSel?22:flag?20:16}px; line-height:1;
-            ${isSel ? `box-shadow: 0 0 0 4px ${col}55;` : ""}
+            font-size:${isSel?22:flag?19:16}px; line-height:1;
+            ${isSel ? `box-shadow: 0 0 0 4px ${col}66;` : ""}
+            ${flag ? `box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ffd24a88;` : ""}
           ">${emoji}</div>
+          ${flag ? `
           <div style="
-            position:absolute; left:50%; top:100%;
+            position:absolute; right:-3px; top:-3px;
+            width:16px; height:16px; border-radius:50%;
+            background:#ffd24a; border:2px solid #fff;
+            display:flex; align-items:center; justify-content:center;
+            font-size:9px; line-height:1;
+          ">🏆</div>` : ""}
+          <div style="
+            position:absolute; left:50%; top:${size - 1}px;
             width:0; height:0;
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
-            border-top: 8px solid #fff;
+            border-top: 8px solid ${flag ? "#ffd24a" : "#fff"};
             transform:translateX(-50%);
-            margin-top:-4px;
           "></div>
         </div>`;
       const icon = window.L.divIcon({
         className: "nk-marker",
         html,
-        iconSize: [size, size + 6], iconAnchor: [size/2, size],
+        iconSize: [size, size + 6], iconAnchor: [size/2, size + 6],
       });
-      const mk = window.L.marker([lat, lng], { icon }).addTo(group);
+      const mk = window.L.marker([lat, lng], { icon });
       mk.on("click", () => {
-        setSelected(v);
-        m.flyTo([lat, lng], Math.max(m.getZoom(), 14), { duration: 0.45 });
+        setSelected(v); setSheet(v);
+        m.flyTo([lat, lng], Math.max(m.getZoom(), 15), { duration: 0.45 });
       });
+      markers.push(mk);
     });
+    if (group.addLayers) group.addLayers(markers);
+    else markers.forEach(mk => mk.addTo(group));
   }, [visible, selected, ready, coords]);
 
   // Geolocation
@@ -188,30 +226,50 @@ export default function MapView({ lang, dict }) {
         </div>
       )}
 
-      {/* Top-left: title chip */}
+      {/* Top filter bar */}
       <div style={{
         position:"absolute", top: 12, left: 12, right: 12, zIndex: 5,
-        display:"flex", gap: 8, flexWrap: "wrap",
+        display:"flex", flexDirection:"column", gap: 8,
       }}>
-        <Chip onClick={() => setOnlyFlag(!onlyFlag)} active={onlyFlag}>
-          {onlyFlag ? "🏆" : "All"} {onlyFlag ? (lang==="uk"?"Лише флагмани":"Flagships only") : (lang==="uk"?"Усі":"Show all")}
-        </Chip>
-        {cats && cats.map(c => {
-          const on = !activeCats || activeCats.has(c.id);
-          return (
-            <Chip key={c.id} accent={catColor[c.id]} active={on && !!activeCats} onClick={() => {
-              setActiveCats(prev => {
-                if (!cats) return prev;
-                const set = new Set(prev || cats.map(x => x.id));
-                if (set.has(c.id)) set.delete(c.id); else set.add(c.id);
-                if (set.size === cats.length) return null;
-                return set;
-              });
-            }}>
-              {c.ic} {lang==="uk"?c.uk:c.en}
-            </Chip>
-          );
-        })}
+        {/* Stats pill — total visible */}
+        <div style={{ display:"flex", alignItems:"center", gap: 8 }}>
+          <div style={{
+            background:"#fff", color:"#2a2840",
+            padding:"7px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.08)",
+            display:"flex", alignItems:"center", gap: 6,
+          }}>
+            <span style={{ width:8, height:8, borderRadius:"50%", background: colors.primary }}/>
+            {visible.length} {lang==="uk"?"місць":"places"}
+          </div>
+          <Chip onClick={() => setOnlyFlag(!onlyFlag)} active={onlyFlag} accent={"#ffd24a"}>
+            🏆 {lang==="uk"?"Флагмани":"Flagships"}
+          </Chip>
+        </div>
+
+        {/* Category chips — scroll horizontally on mobile */}
+        <div style={{
+          display:"flex", gap: 6, overflowX:"auto", paddingBottom: 4,
+          scrollbarWidth:"none", marginLeft: -4, paddingLeft: 4, paddingRight: 4,
+        }}>
+          <Chip onClick={() => setActiveCats(null)} active={!activeCats}>
+            {lang==="uk"?"Усі":"All"}
+          </Chip>
+          {cats && cats.map(c => {
+            const isActive = activeCats?.has(c.id) || false;
+            return (
+              <Chip key={c.id} accent={catColor[c.id]} active={isActive} onClick={() => {
+                setActiveCats(prev => {
+                  const set = new Set(prev || []);
+                  if (set.has(c.id)) set.delete(c.id); else set.add(c.id);
+                  return set.size === 0 ? null : set;
+                });
+              }}>
+                {c.ic} {lang==="uk"?c.uk:c.en}
+              </Chip>
+            );
+          })}
+        </div>
       </div>
 
       {/* Bottom-right: locate */}
@@ -234,7 +292,11 @@ export default function MapView({ lang, dict }) {
         {nearest.map(({ v, d }) => {
           const col = catColor[v.category] || colors.primary;
           return (
-            <button key={v.id} onClick={() => { setSelected(v); setSheet(v); }} style={{
+            <button key={v.id} onClick={() => {
+              const [lat, lng] = getCoords(v, coords);
+              setSelected(v); setSheet(v);
+              if (mapRef.current) mapRef.current.flyTo([lat, lng], 15, { duration: 0.5 });
+            }} style={{
               flex:"0 0 230px", textAlign:"left", padding:"12px 14px",
               borderRadius: 16, background: "#fff",
               border:"none",
