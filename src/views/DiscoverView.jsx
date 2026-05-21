@@ -206,7 +206,7 @@ function Hero({ lang, dict, totalVenues }) {
 
       {/* Kyiv night silhouette */}
       <div style={{ position:"relative", height: 84, marginTop: 14, opacity: 0.9 }}>
-        <svg viewBox="0 0 600 90" preserveAspectRatio="xMidYEnd slice" style={{ position:"absolute", inset:0, width:"100%", height:"100%" }}>
+        <svg viewBox="0 0 600 90" preserveAspectRatio="xMidYMax slice" style={{ position:"absolute", inset:0, width:"100%", height:"100%" }}>
           <defs>
             <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor={colors.primary} stopOpacity="0.18"/>
