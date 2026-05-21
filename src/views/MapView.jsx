@@ -108,14 +108,17 @@ export default function MapView({ lang, dict }) {
     });
   }
 
-  // Closest 12 in sidebar (when geolocated)
+  // Closest 12 in sidebar — always returns [{ v, d }] so the consumer can
+  // destructure `v` consistently. When the user hasn't shared location yet,
+  // `d` is null and we just show the first 12 visible venues.
   const nearest = useMemo(() => {
-    if (!userLoc) return visible.slice(0, 12);
+    if (!visible.length) return [];
+    if (!userLoc) return visible.slice(0, 12).map(v => ({ v, d: null }));
     return visible
       .map(v => ({ v, d: distanceKm(userLoc, getCoords(v, coords)) }))
       .sort((a,b) => a.d - b.d)
       .slice(0, 12);
-  }, [visible, userLoc]);
+  }, [visible, userLoc, coords]);
 
   const loading = !venues || !cats;
 
