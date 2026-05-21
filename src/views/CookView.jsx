@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { colors, radius, font } from "../styles/theme.js";
 import { loadRecipes, loadCategories } from "../utils/data.js";
+import { SkeletonList } from "../components/Skeleton.jsx";
 
 export default function CookView({ lang, dict }) {
   const [recipes, setRecipes] = useState(null);
@@ -22,7 +23,15 @@ export default function CookView({ lang, dict }) {
     });
   }, [recipes, sub, query]);
 
-  if (!recipes || !subs) return <div style={{ padding:30, color: colors.textDim, textAlign:"center" }}>{lang==="uk"?"Завантаження…":"Loading…"}</div>;
+  if (!recipes || !subs) return (
+    <div style={{ padding:"0 18px 24px" }}>
+      <div style={{ paddingTop: 14, marginBottom: 12 }}>
+        <div style={{ height: 24, width: "55%", background: colors.surface2, borderRadius: 6, marginBottom: 8 }}/>
+        <div style={{ height: 12, width: "75%", background: colors.surface2, borderRadius: 6 }}/>
+      </div>
+      <SkeletonList count={4}/>
+    </div>
+  );
 
   return (
     <div style={{ padding:"0 18px 24px", color: colors.text, fontFamily: font.body }}>

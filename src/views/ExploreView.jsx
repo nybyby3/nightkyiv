@@ -3,6 +3,7 @@ import { colors, radius, font, catColor } from "../styles/theme.js";
 import { loadVenues, loadCategories } from "../utils/data.js";
 import VenueCard from "../components/VenueCard.jsx";
 import VenueSheet from "../components/VenueSheet.jsx";
+import { SkeletonList } from "../components/Skeleton.jsx";
 
 const PAGE = 30;
 
@@ -50,7 +51,15 @@ export default function ExploreView({ lang, dict, initial }) {
 
   const visible = filtered.slice(0, page * PAGE);
 
-  if (!venues || !cats) return <Loading lang={lang}/>;
+  if (!venues || !cats) return (
+    <div style={{ padding:"0 18px 24px" }}>
+      <div style={{ paddingTop: 14, marginBottom: 12 }}>
+        <div style={{ height: 24, width: "60%", background: colors.surface2, borderRadius: 6, marginBottom: 8 }}/>
+        <div style={{ height: 12, width: "80%", background: colors.surface2, borderRadius: 6 }}/>
+      </div>
+      <SkeletonList count={6}/>
+    </div>
+  );
 
   return (
     <div style={{ padding: "0 18px 24px", fontFamily: font.body, color: colors.text }}>

@@ -78,6 +78,7 @@ export default function App() {
 
       <style>{`
         @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
+        @keyframes nk-shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
         ::-webkit-scrollbar { width:4px; height:4px }
         ::-webkit-scrollbar-thumb { background: rgba(162,89,255,0.3); border-radius:4px }
         body { overscroll-behavior-y: none }

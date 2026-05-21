@@ -32,6 +32,9 @@ export const dict = {
       back:     "← Назад",
       reset:    "Спочатку",
       seeAll:   "Дивитись усі",
+      surprise: "🎲 Здивуй мене",
+      saved:    "Збережене",
+      noSaved:  "Поки нічого не збережено. Тисни ♡ на картках, які тобі сподобались.",
     },
 
     explore: {
@@ -111,6 +114,9 @@ export const dict = {
       back:     "← Back",
       reset:    "Start over",
       seeAll:   "See all",
+      surprise: "🎲 Surprise me",
+      saved:    "Saved",
+      noSaved:  "Nothing saved yet. Tap ♡ on cards you like.",
     },
 
     explore: {
