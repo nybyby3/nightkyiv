@@ -20,23 +20,40 @@ export default function MapView({ lang, dict }) {
   const [selected, setSelected] = useState(null);
   const [sheet, setSheet]       = useState(null);
 
+  const [ready, setReady] = useState(false); // map instance ready
+
   useEffect(() => { loadVenues().then(setVenues); }, []);
   useEffect(() => { loadCategories().then(c => setCats(c.venues)); }, []);
   useEffect(() => { loadCoords().then(setCoords); }, []);
 
-  // Initialise leaflet map once.
+  // Initialise Leaflet map. We retry until both window.L and the DOM
+  // container are present — the container can appear later if a parent
+  // conditionally renders us, and Leaflet from the CDN can arrive late on
+  // a cold load.
   useEffect(() => {
-    if (!mapEl.current || mapRef.current) return;
-    if (!window.L) return;
-    const m = window.L.map(mapEl.current, {
-      zoomControl: false, attributionControl: false,
-    }).setView(KYIV, 12);
-    window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19, subdomains: "abcd",
-    }).addTo(m);
-    window.L.control.zoom({ position: "bottomright" }).addTo(m);
-    mapRef.current = m;
-  }, []);
+    if (mapRef.current) return; // already initialised
+    let cancelled = false;
+    function tryInit() {
+      if (cancelled || mapRef.current) return;
+      if (!mapEl.current || !window.L) {
+        setTimeout(tryInit, 80);
+        return;
+      }
+      const m = window.L.map(mapEl.current, {
+        zoomControl: false, attributionControl: false,
+      }).setView(KYIV, 12);
+      window.L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19, subdomains: "abcd",
+      }).addTo(m);
+      window.L.control.zoom({ position: "bottomright" }).addTo(m);
+      mapRef.current = m;
+      setReady(true);
+      // Resize fix — sometimes the container's final size isn't known yet.
+      setTimeout(() => m.invalidateSize(), 250);
+    }
+    tryInit();
+    return () => { cancelled = true; };
+  });
 
   // Compute markers based on filters.
   const visible = useMemo(() => {
@@ -49,8 +66,9 @@ export default function MapView({ lang, dict }) {
     });
   }, [venues, onlyFlag, activeCats]);
 
-  // Render markers.
+  // Render markers — depends on `ready` so it waits until the map exists.
   useEffect(() => {
+    if (!ready) return;
     const m = mapRef.current; if (!m || !window.L) return;
     if (layerRef.current) m.removeLayer(layerRef.current);
     const group = window.L.layerGroup().addTo(m);
@@ -72,7 +90,7 @@ export default function MapView({ lang, dict }) {
         m.flyTo([lat, lng], Math.max(m.getZoom(), 14), { duration: 0.45 });
       });
     });
-  }, [visible, selected]);
+  }, [visible, selected, ready, coords]);
 
   // Geolocation
   function locate() {
@@ -99,11 +117,23 @@ export default function MapView({ lang, dict }) {
       .slice(0, 12);
   }, [visible, userLoc]);
 
-  if (!venues || !cats) return <div style={{ padding:30, color: colors.textDim, textAlign:"center" }}>{lang==="uk"?"Завантаження карти…":"Loading map…"}</div>;
+  const loading = !venues || !cats;
 
   return (
-    <div style={{ position:"relative", height:"calc(100vh - 56px - 70px)", fontFamily: font.body }}>
+    <div style={{ position:"relative", height:"calc(100vh - 56px - 70px - 32px)", minHeight: 420, fontFamily: font.body }}>
       <div ref={mapEl} style={{ position:"absolute", inset:0, background: colors.bg }}/>
+      {loading && (
+        <div style={{
+          position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(10,8,20,0.7)", backdropFilter:"blur(4px)", zIndex: 10,
+          color: colors.textDim, fontSize: 13,
+        }}>
+          <div style={{ textAlign:"center" }}>
+            <div style={{ fontSize: 24, marginBottom: 8, animation:"pulse 1.4s infinite" }}>🗺️</div>
+            {lang==="uk"?"Завантаження карти…":"Loading map…"}
+          </div>
+        </div>
+      )}
 
       {/* Top-left: title chip */}
       <div style={{
@@ -113,11 +143,12 @@ export default function MapView({ lang, dict }) {
         <Chip onClick={() => setOnlyFlag(!onlyFlag)} active={onlyFlag}>
           {onlyFlag ? "🏆" : "All"} {onlyFlag ? (lang==="uk"?"Лише флагмани":"Flagships only") : (lang==="uk"?"Усі":"Show all")}
         </Chip>
-        {cats.map(c => {
+        {cats && cats.map(c => {
           const on = !activeCats || activeCats.has(c.id);
           return (
             <Chip key={c.id} accent={catColor[c.id]} active={on && !!activeCats} onClick={() => {
               setActiveCats(prev => {
+                if (!cats) return prev;
                 const set = new Set(prev || cats.map(x => x.id));
                 if (set.has(c.id)) set.delete(c.id); else set.add(c.id);
                 if (set.size === cats.length) return null;
